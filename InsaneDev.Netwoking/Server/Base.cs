@@ -13,34 +13,34 @@ namespace InsaneDev.Netwoking.Server
 {
     public class Base
     {
-        protected static TcpListener TcpListener;
-        protected static Thread ListeningThread;
-        protected static Thread UpdateThread;
-        protected static bool Listening;
-        protected static bool Running;
-        protected static List<ClientConnection> CurrentlyConnectedClients;
-        protected static IPEndPoint TCPLocalEndPoint;
-        protected static Type ClientType;
+        protected TcpListener _TcpListener;
+        protected Thread _ListeningThread;
+        protected Thread _UpdateThread;
+        protected bool _Listening;
+        protected bool _Running;
+        protected List<ClientConnection> _CurrentlyConnectedClients;
+        protected IPEndPoint _TCPLocalEndPoint;
+        protected Type _ClientType;
 
         /// <summary>
         ///     Required to initalise the Server system
         /// </summary>
         /// <param name="tcpLocalEndPoint"> The local point ther server should listen for connections on </param>
         /// <param name="clientType"> A type of type Client that will be instantiated for each connection </param>
-        public static void Init(IPEndPoint tcpLocalEndPoint, Type clientType)
+        public void Init(IPEndPoint tcpLocalEndPoint, Type clientType)
         {
-            ClientType = clientType;
-            CurrentlyConnectedClients = new List<ClientConnection>();
-            TCPLocalEndPoint = tcpLocalEndPoint;
+            _ClientType = clientType;
+            _CurrentlyConnectedClients = new List<ClientConnection>();
+            _TCPLocalEndPoint = tcpLocalEndPoint;
         }
 
         /// <summary>
         ///     Begin the process of listening for incoming connections
         /// </summary>
-        public static void StartListening()
+        public void StartListening()
         {
-            ListeningThread = new Thread(ListenLoop);
-            ListeningThread.Start();
+            _ListeningThread = new Thread(ListenLoop);
+            _ListeningThread.Start();
         }
 
         /// <summary>
@@ -48,21 +48,21 @@ namespace InsaneDev.Netwoking.Server
         /// </summary>
         public static void StopListening()
         {
-            Listening = false;
+            _Listening = false;
         }
 
         private static void ListenLoop()
         {
-            TcpListener = new TcpListener(TCPLocalEndPoint);
-            TcpListener.Start();
-            Listening = true;
+            _TcpListener = new TcpListener(_TCPLocalEndPoint);
+            _TcpListener.Start();
+            _Listening = true;
 
-            while (Listening)
+            while (_Listening)
             {
-                while (TcpListener.Pending()) HandelNewConnection(TcpListener.AcceptTcpClient());
+                while (_TcpListener.Pending()) HandelNewConnection(_TcpListener.AcceptTcpClient());
                 Thread.Sleep(16);
             }
-            Listening = false;
+            _Listening = false;
         }
 
         private static void HandelNewConnection(TcpClient newSocket)
@@ -70,14 +70,14 @@ namespace InsaneDev.Netwoking.Server
             try
             {
                 newSocket.NoDelay = true;
-                lock (CurrentlyConnectedClients)
+                lock (_CurrentlyConnectedClients)
                 {
-                    CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(ClientType, new object[] {newSocket}));
-                    if (!Running)
+                    _CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(_ClientType, new object[] {newSocket}));
+                    if (!_Running)
                     {
-                        Running = true;
-                        UpdateThread = new Thread(UpdateLoop);
-                        UpdateThread.Start();
+                        _Running = true;
+                        _UpdateThread = new Thread(UpdateLoop);
+                        _UpdateThread.Start();
                     }
                 }
             }
@@ -90,7 +90,7 @@ namespace InsaneDev.Netwoking.Server
         public static void SendToAll(Packet p)
         {
             List<ClientConnection> d = new List<ClientConnection>();
-            lock (CurrentlyConnectedClients) d.AddRange(CurrentlyConnectedClients);
+            lock (_CurrentlyConnectedClients) d.AddRange(_CurrentlyConnectedClients);
             foreach (ClientConnection c in d) c.SendPacket(p.Copy());
 
             d.Clear();
@@ -99,18 +99,18 @@ namespace InsaneDev.Netwoking.Server
 
         private static void UpdateLoop()
         {
-            while (Running)
+            while (_Running)
             {
                 List<ClientConnection> d = new List<ClientConnection>();
-                lock (CurrentlyConnectedClients)
+                lock (_CurrentlyConnectedClients)
                 {
-                    if (CurrentlyConnectedClients.Count == 0)
+                    if (_CurrentlyConnectedClients.Count == 0)
                     {
-                        Running = false;
+                        _Running = false;
                         break;
                     }
-                    d.AddRange(CurrentlyConnectedClients);
-                    foreach (ClientConnection c in d.Where(i => i.Disposed)) CurrentlyConnectedClients.Remove(c);
+                    d.AddRange(_CurrentlyConnectedClients);
+                    foreach (ClientConnection c in d.Where(i => i.Disposed)) _CurrentlyConnectedClients.Remove(c);
                     d.Clear();
                 }
                 Thread.Sleep(50);
@@ -123,7 +123,7 @@ namespace InsaneDev.Netwoking.Server
         /// <returns> </returns>
         public static bool IsListening()
         {
-            return Listening;
+            return _Listening;
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace InsaneDev.Netwoking.Server
         /// <returns> </returns>
         public static bool IsRunning()
         {
-            return Running;
+            return _Running;
         }
     }
 }
