@@ -9,7 +9,7 @@ using System.Threading;
 
 #endregion
 
-namespace InsaneDev.Netwoking.Server
+namespace InsaneDev.Networking.Server
 {
     public class Base
     {
@@ -46,12 +46,12 @@ namespace InsaneDev.Netwoking.Server
         /// <summary>
         ///     Stop listening for incoming connections
         /// </summary>
-        public static void StopListening()
+        public void StopListening()
         {
             _Listening = false;
         }
 
-        private static void ListenLoop()
+        private void ListenLoop()
         {
             _TcpListener = new TcpListener(_TCPLocalEndPoint);
             _TcpListener.Start();
@@ -65,7 +65,7 @@ namespace InsaneDev.Netwoking.Server
             _Listening = false;
         }
 
-        private static void HandelNewConnection(TcpClient newSocket)
+        private void HandelNewConnection(TcpClient newSocket)
         {
             try
             {
@@ -87,7 +87,7 @@ namespace InsaneDev.Netwoking.Server
             }
         }
 
-        public static void SendToAll(Packet p)
+        public void SendToAll(Packet p)
         {
             List<ClientConnection> d = new List<ClientConnection>();
             lock (_CurrentlyConnectedClients) d.AddRange(_CurrentlyConnectedClients);
@@ -97,7 +97,7 @@ namespace InsaneDev.Netwoking.Server
             p.Dispose();
         }
 
-        private static void UpdateLoop()
+        private void UpdateLoop()
         {
             while (_Running)
             {
@@ -121,7 +121,7 @@ namespace InsaneDev.Netwoking.Server
         ///     Returns true if the the server is listening
         /// </summary>
         /// <returns> </returns>
-        public static bool IsListening()
+        public bool IsListening()
         {
             return _Listening;
         }
@@ -130,7 +130,7 @@ namespace InsaneDev.Netwoking.Server
         ///     Returns true if the server is running
         /// </summary>
         /// <returns> </returns>
-        public static bool IsRunning()
+        public bool IsRunning()
         {
             return _Running;
         }

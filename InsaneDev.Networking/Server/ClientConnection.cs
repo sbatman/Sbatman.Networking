@@ -9,7 +9,7 @@ using System.Threading;
 
 #endregion
 
-namespace InsaneDev.Netwoking.Server
+namespace InsaneDev.Networking.Server
 {
     public abstract class ClientConnection
     {

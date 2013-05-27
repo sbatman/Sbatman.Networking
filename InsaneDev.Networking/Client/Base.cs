@@ -8,7 +8,7 @@ using System.Threading;
 
 #endregion
 
-namespace InsaneDev.Netwoking.Client
+namespace InsaneDev.Networking.Client
 {
     public class Base
     {
