@@ -15,12 +15,12 @@ namespace InsaneDev.Networking.Server
     {
         private static int _LastClientIdAllocated;
 
-        protected TcpClient AttachedSocket;
-        protected int ClientId;
-        protected List<Packet> PacketsToProcess = new List<Packet>();
-        protected List<Packet> PacketsToSend = new List<Packet>();
-        private List<Packet> _TempPacketList = new List<Packet>();
-        public bool Disposed = false;
+        protected readonly TcpClient AttachedSocket;
+        protected readonly int ClientId;
+        protected readonly List<Packet> PacketsToProcess = new List<Packet>();
+        protected readonly List<Packet> PacketsToSend = new List<Packet>();
+        private readonly List<Packet> _tempPacketList = new List<Packet>();
+        public bool Disposed;
         protected byte[] _ByteBuffer;
         protected int _ByteBufferCount;
         protected TimeSpan _ClientUpdateInterval = new TimeSpan(0, 0, 0, 0, 5);
@@ -30,7 +30,6 @@ namespace InsaneDev.Networking.Server
         protected NetworkStream _NetStream;
         protected DateTime _TimeOfConnection;
         protected Thread _UpdateThread;
-
 
         /// <summary>
         ///     An instance of a client connection on the server
@@ -46,7 +45,9 @@ namespace InsaneDev.Networking.Server
             Packet p = new Packet(9999);
             p.AddInt(ClientId);
             PacketsToSend.Add(p);
+// ReSharper disable DoNotCallOverridableMethodsInConstructor
             OnConnect();
+// ReSharper restore DoNotCallOverridableMethodsInConstructor
             _UpdateThread = new Thread(Update);
             _UpdateThread.Start();
         }
@@ -206,23 +207,23 @@ namespace InsaneDev.Networking.Server
                     {
                         if (PacketsToSend.Count > 0)
                         {
-                            _TempPacketList.AddRange(PacketsToSend);
+                            _tempPacketList.AddRange(PacketsToSend);
                             PacketsToSend.Clear();
                         }
                     }
-                    if (_TempPacketList.Count > 0)
+                    if (_tempPacketList.Count > 0)
                     {
                         _NetStream = new NetworkStream(AttachedSocket.Client);
-                        foreach (byte[] data in _TempPacketList.Select(p => p.ToByteArray()))
+                        foreach (byte[] data in _tempPacketList.Select(p => p.ToByteArray()))
                         {
                             _NetStream.Write(data, 0, data.Length);
                         }
                         _NetStream.Close();
                         _NetStream.Dispose();
                         _NetStream = null;
-                        foreach (Packet p in _TempPacketList) p.Dispose();
+                        foreach (Packet p in _tempPacketList) p.Dispose();
                     }
-                    _TempPacketList.Clear();
+                    _tempPacketList.Clear();
                     if (DateTime.Now - _LastClientUpdate > _ClientUpdateInterval)
                     {
                         _LastClientUpdate += _ClientUpdateInterval;

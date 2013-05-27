@@ -1,15 +1,14 @@
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 // Information about this assembly is defined by the following attributes. 
 // Change them to the values specific to your project.
 
-[assembly: AssemblyTitle("InsaneDev.Netwoking")]
+[assembly: AssemblyTitle("InsaneDev.Networking")]
 [assembly: AssemblyDescription("InsaneDev.Networking is a lightweight and easy to use networking abstraction library. Offering easy packet building and handeling. It also offers easy client server connectivity management.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("InsaneDev.co.uk")]
 [assembly: AssemblyProduct("")]
-[assembly: AssemblyCopyright("Steven Batchelor-Manning")]
+[assembly: AssemblyCopyright("InsaneDev.co.uk")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

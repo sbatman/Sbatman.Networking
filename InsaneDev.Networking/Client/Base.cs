@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 
 #endregion
@@ -12,20 +11,18 @@ namespace InsaneDev.Networking.Client
 {
     public class Base
     {
-        protected byte[] ByteBuffer;
-        protected int ByteBufferCOunt = 0;
-        protected int ClientId = -1;
-        protected TcpClient ClientSocket = new TcpClient();
-        protected bool Connected = false;
-        protected bool Error;
-        protected string ErrorMessage;
-        protected NetworkStream NetStream;
-        protected int PacketCheckInterval = 6;
-        protected Thread PacketHandel;
-        protected Queue<Packet> PacketsToProcess = new Queue<Packet>();
-        protected List<Packet> PacketsToSend = new List<Packet>();
-        protected BinaryFormatter Serialiser = new BinaryFormatter();
-
+        protected byte[] _ByteBuffer;
+        protected int _ByteBufferCOunt;
+        protected int _ClientId = -1;
+        protected TcpClient _ClientSocket = new TcpClient();
+        protected bool _Connected;
+        protected bool _Error;
+        protected string _ErrorMessage;
+        protected NetworkStream _NetStream;
+        protected int _PacketCheckInterval = 6;
+        protected Thread _PacketHandel;
+        protected readonly Queue<Packet> PacketsToProcess = new Queue<Packet>();
+        protected readonly List<Packet> PacketsToSend = new List<Packet>();
 
         /// <summary>
         ///     Initialise a connection to the speicified adress and port
@@ -34,22 +31,22 @@ namespace InsaneDev.Networking.Client
         /// <param name="port"> </param>
         public bool Connect(String serverAddress, int port)
         {
-            ErrorMessage = "";
-            Error = false;
-            ByteBuffer = new byte[100000];
+            _ErrorMessage = "";
+            _Error = false;
+            _ByteBuffer = new byte[100000];
             try
             {
-                ClientSocket = new TcpClient(serverAddress, port);
+                _ClientSocket = new TcpClient(serverAddress, port);
             }
             catch
             {
                 Console.WriteLine("NerfCorev2:Networking - Failure to connect to " + serverAddress + " on port " + port);
             }
-            if (ClientSocket.Connected)
+            if (_ClientSocket.Connected)
             {
-                Connected = true;
-                PacketHandel = new Thread(Update);
-                PacketHandel.Start();
+                _Connected = true;
+                _PacketHandel = new Thread(Update);
+                _PacketHandel.Start();
                 return true;
             }
             return false;
@@ -62,7 +59,7 @@ namespace InsaneDev.Networking.Client
         public void SetPacketCheckInterval(int timeBettweenChecksInMs)
         {
             if (timeBettweenChecksInMs <= 0) timeBettweenChecksInMs = 1;
-            PacketCheckInterval = timeBettweenChecksInMs;
+            _PacketCheckInterval = timeBettweenChecksInMs;
         }
 
         /// <summary>
@@ -132,9 +129,9 @@ namespace InsaneDev.Networking.Client
         /// <returns> </returns>
         public virtual bool IsConnected()
         {
-            if (ClientSocket != null)
+            if (_ClientSocket != null)
             {
-                return ClientSocket.Connected;
+                return _ClientSocket.Connected;
             }
             return false;
         }
@@ -144,14 +141,14 @@ namespace InsaneDev.Networking.Client
         /// </summary>
         public void Disconnect()
         {
-            Connected = false;
+            _Connected = false;
         }
 
         private void Update()
         {
             try
             {
-                while (Connected)
+                while (_Connected)
                 {
                     List<Packet> templist = new List<Packet>();
                     lock (PacketsToSend)
@@ -162,42 +159,42 @@ namespace InsaneDev.Networking.Client
 
                     if (templist.Count > 0)
                     {
-                        NetStream = new NetworkStream(ClientSocket.Client);
+                        _NetStream = new NetworkStream(_ClientSocket.Client);
                         foreach (Packet p in templist)
                         {
                             byte[] packet = p.ToByteArray();
-                            NetStream.Write(packet, 0, packet.Length);                         
+                            _NetStream.Write(packet, 0, packet.Length);                         
                         }
-                        NetStream.Close();
+                        _NetStream.Close();
                     }
                     templist.Clear();
 
-                    if (ClientSocket.Available > 0)
+                    if (_ClientSocket.Available > 0)
                     {
-                        byte[] datapulled = new byte[ClientSocket.Available];
-                        ClientSocket.GetStream().Read(datapulled, 0, datapulled.Length);
-                        Array.Copy(datapulled, 0, ByteBuffer, ByteBufferCOunt, datapulled.Length);
-                        ByteBufferCOunt += datapulled.Length;
+                        byte[] datapulled = new byte[_ClientSocket.Available];
+                        _ClientSocket.GetStream().Read(datapulled, 0, datapulled.Length);
+                        Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCOunt, datapulled.Length);
+                        _ByteBufferCOunt += datapulled.Length;
                     }
-                    bool finding = ByteBufferCOunt > 11;
+                    bool finding = _ByteBufferCOunt > 11;
                     while (finding)
                     {
                         bool packerstartpresent = true;
                         for (int x = 0; x < 4; x++)
                         {
-                            if (ByteBuffer[x] == Packet.PacketStart[x]) continue;
+                            if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
                             packerstartpresent = false;
                             break;
                         }
                         if (packerstartpresent)
                         {
-                            int size = BitConverter.ToInt32(ByteBuffer, 6);
-                            if (ByteBufferCOunt >= size)
+                            int size = BitConverter.ToInt32(_ByteBuffer, 6);
+                            if (_ByteBufferCOunt >= size)
                             {
                                 byte[] packet = new byte[size];
-                                Array.Copy(ByteBuffer, 0, packet, 0, size);
-                                Array.Copy(ByteBuffer, size, ByteBuffer, 0, ByteBufferCOunt - size);
-                                ByteBufferCOunt -= size;
+                                Array.Copy(_ByteBuffer, 0, packet, 0, size);
+                                Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCOunt - size);
+                                _ByteBufferCOunt -= size;
                                 Packet p = Packet.FromByteArray(packet);
                                 if (p != null) PacketsToProcess.Enqueue(p);
                             }
@@ -209,53 +206,53 @@ namespace InsaneDev.Networking.Client
                         else
                         {
                             int offset = -1;
-                            for (int x = 0; x < ByteBufferCOunt; x++)
+                            for (int x = 0; x < _ByteBufferCOunt; x++)
                             {
-                                if (ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
+                                if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
                             }
                             if (offset != -1)
                             {
-                                Array.Copy(ByteBuffer, offset, ByteBuffer, 0, ByteBufferCOunt - offset);
-                                ByteBufferCOunt -= offset;
+                                Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCOunt - offset);
+                                _ByteBufferCOunt -= offset;
                             }
                             else
                             {
-                                ByteBufferCOunt = 0;
+                                _ByteBufferCOunt = 0;
                             }
                         }
-                        if (ByteBufferCOunt < 12) finding = false;
+                        if (_ByteBufferCOunt < 12) finding = false;
                     }
                     lock (PacketsToProcess)
                     {
                         foreach (Packet p in templist) PacketsToProcess.Enqueue(p);
                     }
                     templist.Clear();
-                    Thread.Sleep(PacketCheckInterval);
+                    Thread.Sleep(_PacketCheckInterval);
                 }
             }
             catch (Exception e)
             {
-                Error = true;
-                ErrorMessage = e.Message;
+                _Error = true;
+                _ErrorMessage = e.Message;
                 Console.WriteLine("Powerup:Networking - Networking layer failed " + e.Message);
             }
 
-            if (ClientSocket != null)
+            if (_ClientSocket != null)
             {
-                if (ClientSocket.Connected) ClientSocket.Close();
-                ClientSocket = null;
+                if (_ClientSocket.Connected) _ClientSocket.Close();
+                _ClientSocket = null;
             }
-            Connected = false;
+            _Connected = false;
         }
 
         public bool HasErrored()
         {
-            return Error;
+            return _Error;
         }
 
         public string GetError()
         {
-            return ErrorMessage;
+            return _ErrorMessage;
         }
 
         private void NetLayerMessage(Packet p)
@@ -263,7 +260,7 @@ namespace InsaneDev.Networking.Client
             switch (p.Type)
             {
                 case 9999:
-                    ClientId = (int) p.GetObjects()[0];
+                    _ClientId = (int) p.GetObjects()[0];
                     break;
             }
         }
