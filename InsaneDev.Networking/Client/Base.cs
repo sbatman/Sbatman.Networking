@@ -23,6 +23,7 @@ namespace InsaneDev.Networking.Client
         protected Thread _PacketHandel;
         protected readonly Queue<Packet> PacketsToProcess = new Queue<Packet>();
         protected readonly List<Packet> PacketsToSend = new List<Packet>();
+        protected int BufferSize = 1000000;
 
         /// <summary>
         ///     Initialise a connection to the speicified adress and port
@@ -33,7 +34,7 @@ namespace InsaneDev.Networking.Client
         {
             _ErrorMessage = "";
             _Error = false;
-            _ByteBuffer = new byte[100000];
+            _ByteBuffer = new byte[BufferSize];
             try
             {
                 _ClientSocket = new TcpClient(serverAddress, port);
