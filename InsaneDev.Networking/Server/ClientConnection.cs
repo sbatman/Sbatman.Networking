@@ -13,7 +13,7 @@ namespace InsaneDev.Networking.Server
 {
     public abstract class ClientConnection
     {
-        private static int _LastClientIdAllocated;
+        private static int _LastClientIDAllocated;
 
         protected readonly TcpClient AttachedSocket;
         protected readonly int ClientId;
@@ -35,9 +35,9 @@ namespace InsaneDev.Networking.Server
         ///     An instance of a client connection on the server
         /// </summary>
         /// <param name="newSocket"> </param>
-        public ClientConnection(TcpClient newSocket)
+        protected ClientConnection(TcpClient newSocket)
         {
-            _ByteBuffer = new byte[100000];
+            _ByteBuffer = new byte[1000000];
             ClientId = GetNewClientId();
             _TimeOfConnection = DateTime.Now;
             AttachedSocket = newSocket;
@@ -281,8 +281,8 @@ namespace InsaneDev.Networking.Server
 
         private static int GetNewClientId()
         {
-            _LastClientIdAllocated++;
-            return _LastClientIdAllocated;
+            _LastClientIDAllocated++;
+            return _LastClientIDAllocated;
         }
     }
 }

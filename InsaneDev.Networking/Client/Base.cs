@@ -21,8 +21,9 @@ namespace InsaneDev.Networking.Client
         protected NetworkStream _NetStream;
         protected int _PacketCheckInterval = 6;
         protected Thread _PacketHandel;
-        protected readonly Queue<Packet> PacketsToProcess = new Queue<Packet>();
-        protected readonly List<Packet> PacketsToSend = new List<Packet>();
+        protected readonly Queue<Packet> _PacketsToProcess = new Queue<Packet>();
+        protected readonly List<Packet> _PacketsToSend = new List<Packet>();
+        protected int _BufferSize = 1000000;
 
         /// <summary>
         ///     Initialise a connection to the speicified adress and port
@@ -33,7 +34,7 @@ namespace InsaneDev.Networking.Client
         {
             _ErrorMessage = "";
             _Error = false;
-            _ByteBuffer = new byte[100000];
+            _ByteBuffer = new byte[_BufferSize];
             try
             {
                 _ClientSocket = new TcpClient(serverAddress, port);
@@ -69,13 +70,13 @@ namespace InsaneDev.Networking.Client
         public Packet[] GetPacketsToProcess()
         {
             Packet[] packets;
-            lock (PacketsToProcess)
+            lock (_PacketsToProcess)
             {
-                int count = PacketsToProcess.Count;
+                int count = _PacketsToProcess.Count;
                 packets = new Packet[count];
                 for (int x = 0; x < count; x++)
                 {
-                    packets[x] = PacketsToProcess.Dequeue();
+                    packets[x] = _PacketsToProcess.Dequeue();
                 }
             }
             return packets;
@@ -87,7 +88,7 @@ namespace InsaneDev.Networking.Client
         /// <returns> </returns>
         public int GetPacketsToProcessCount()
         {
-            return PacketsToProcess.Count;
+            return _PacketsToProcess.Count;
         }
 
         /// <summary>
@@ -96,7 +97,7 @@ namespace InsaneDev.Networking.Client
         /// <returns> </returns>
         public int GetPacketsToSendCount()
         {
-            return PacketsToSend.Count;
+            return _PacketsToSend.Count;
         }
 
         /// <summary>
@@ -105,9 +106,9 @@ namespace InsaneDev.Networking.Client
         /// <param name="packet"> Packet to send </param>
         public virtual void SendPacket(Packet packet)
         {
-            lock (PacketsToSend)
+            lock (_PacketsToSend)
             {
-                PacketsToSend.Add(packet);
+                _PacketsToSend.Add(packet);
             }
         }
 
@@ -117,9 +118,9 @@ namespace InsaneDev.Networking.Client
         /// <param name="packets"> List of packets to send </param>
         public virtual void SendPackets(List<Packet> packets)
         {
-            lock (PacketsToSend)
+            lock (_PacketsToSend)
             {
-                PacketsToSend.AddRange(packets);
+                _PacketsToSend.AddRange(packets);
             }
         }
 
@@ -129,11 +130,7 @@ namespace InsaneDev.Networking.Client
         /// <returns> </returns>
         public virtual bool IsConnected()
         {
-            if (_ClientSocket != null)
-            {
-                return _ClientSocket.Connected;
-            }
-            return false;
+            return _ClientSocket != null && _ClientSocket.Connected;
         }
 
         /// <summary>
@@ -151,10 +148,10 @@ namespace InsaneDev.Networking.Client
                 while (_Connected)
                 {
                     List<Packet> templist = new List<Packet>();
-                    lock (PacketsToSend)
+                    lock (_PacketsToSend)
                     {
-                        templist.AddRange(PacketsToSend);
-                        PacketsToSend.Clear();
+                        templist.AddRange(_PacketsToSend);
+                        _PacketsToSend.Clear();
                     }
 
                     if (templist.Count > 0)
@@ -196,7 +193,7 @@ namespace InsaneDev.Networking.Client
                                 Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCOunt - size);
                                 _ByteBufferCOunt -= size;
                                 Packet p = Packet.FromByteArray(packet);
-                                if (p != null) PacketsToProcess.Enqueue(p);
+                                if (p != null) _PacketsToProcess.Enqueue(p);
                             }
                             else
                             {
@@ -222,9 +219,9 @@ namespace InsaneDev.Networking.Client
                         }
                         if (_ByteBufferCOunt < 12) finding = false;
                     }
-                    lock (PacketsToProcess)
+                    lock (_PacketsToProcess)
                     {
-                        foreach (Packet p in templist) PacketsToProcess.Enqueue(p);
+                        foreach (Packet p in templist) _PacketsToProcess.Enqueue(p);
                     }
                     templist.Clear();
                     Thread.Sleep(_PacketCheckInterval);
@@ -253,16 +250,6 @@ namespace InsaneDev.Networking.Client
         public string GetError()
         {
             return _ErrorMessage;
-        }
-
-        private void NetLayerMessage(Packet p)
-        {
-            switch (p.Type)
-            {
-                case 9999:
-                    _ClientId = (int) p.GetObjects()[0];
-                    break;
-            }
         }
     }
 }
