@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -157,10 +158,9 @@ namespace InsaneDev.Networking.Client
                     if (templist.Count > 0)
                     {
                         _NetStream = new NetworkStream(_ClientSocket.Client);
-                        foreach (Packet p in templist)
+                        foreach (byte[] packet in templist.Select(p => p.ToByteArray()))
                         {
-                            byte[] packet = p.ToByteArray();
-                            _NetStream.Write(packet, 0, packet.Length);                         
+                            _NetStream.Write(packet, 0, packet.Length);
                         }
                         _NetStream.Close();
                     }

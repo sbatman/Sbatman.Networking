@@ -15,11 +15,11 @@ namespace InsaneDev.Networking.Server
     {
         private static int _LastClientIDAllocated;
 
-        protected readonly TcpClient AttachedSocket;
-        protected readonly int ClientId;
-        protected readonly List<Packet> PacketsToProcess = new List<Packet>();
-        protected readonly List<Packet> PacketsToSend = new List<Packet>();
-        private readonly List<Packet> _tempPacketList = new List<Packet>();
+        protected readonly TcpClient _AttachedSocket;
+        protected readonly int _ClientId;
+        protected readonly List<Packet> _PacketsToProcess = new List<Packet>();
+        protected readonly List<Packet> _PacketsToSend = new List<Packet>();
+        private readonly List<Packet> _TempPacketList = new List<Packet>();
         public bool Disposed;
         protected byte[] _ByteBuffer;
         protected int _ByteBufferCount;
@@ -38,13 +38,13 @@ namespace InsaneDev.Networking.Server
         protected ClientConnection(TcpClient newSocket)
         {
             _ByteBuffer = new byte[1000000];
-            ClientId = GetNewClientId();
+            _ClientId = GetNewClientId();
             _TimeOfConnection = DateTime.Now;
-            AttachedSocket = newSocket;
+            _AttachedSocket = newSocket;
             _Connected = true;
             Packet p = new Packet(9999);
-            p.AddInt(ClientId);
-            PacketsToSend.Add(p);
+            p.AddInt(_ClientId);
+            _PacketsToSend.Add(p);
 // ReSharper disable DoNotCallOverridableMethodsInConstructor
             OnConnect();
 // ReSharper restore DoNotCallOverridableMethodsInConstructor
@@ -62,7 +62,7 @@ namespace InsaneDev.Networking.Server
         /// <param name="packet"> Packet to send </param>
         public virtual void SendPacket(Packet packet)
         {
-            lock (PacketsToSend) PacketsToSend.Add(packet);
+            lock (_PacketsToSend) _PacketsToSend.Add(packet);
         }
 
         /// <summary>
@@ -71,18 +71,18 @@ namespace InsaneDev.Networking.Server
         /// <param name="packets"> List of packets that are to be sent </param>
         public virtual void SendPackets(List<Packet> packets)
         {
-            lock (PacketsToSend) PacketsToSend.AddRange(packets);
+            lock (_PacketsToSend) _PacketsToSend.AddRange(packets);
             packets.Clear();
         }
 
         protected virtual List<Packet> GetOutStandingProcessingPackets()
         {
             List<Packet> newList = new List<Packet>();
-            lock (PacketsToProcess)
+            lock (_PacketsToProcess)
             {
-                int grabSize = Math.Min(PacketsToProcess.Count, 1000);
-                newList.AddRange(PacketsToProcess.GetRange(0, grabSize));
-                PacketsToProcess.RemoveRange(0, grabSize);
+                int grabSize = Math.Min(_PacketsToProcess.Count, 1000);
+                newList.AddRange(_PacketsToProcess.GetRange(0, grabSize));
+                _PacketsToProcess.RemoveRange(0, grabSize);
             }
             return newList;
         }
@@ -110,7 +110,7 @@ namespace InsaneDev.Networking.Server
         /// <returns> </returns>
         public virtual int GetOutStandingProcessingPacketsCount()
         {
-            return PacketsToProcess.Count;
+            return _PacketsToProcess.Count;
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace InsaneDev.Networking.Server
         /// <returns> </returns>
         public virtual int GetOutStandingSendPacketsCount()
         {
-            return PacketsToSend.Count;
+            return _PacketsToSend.Count;
         }
 
         /// <summary>
@@ -146,13 +146,13 @@ namespace InsaneDev.Networking.Server
             {
                 while (_Connected)
                 {
-                    _Connected = AttachedSocket.Client.Connected;
-                    lock (PacketsToProcess)
+                    _Connected = _AttachedSocket.Client.Connected;
+                    lock (_PacketsToProcess)
                     {
-                        if (AttachedSocket.Available > 0)
+                        if (_AttachedSocket.Available > 0)
                         {
-                            byte[] datapulled = new byte[AttachedSocket.Available];
-                            AttachedSocket.GetStream().Read(datapulled, 0, datapulled.Length);
+                            byte[] datapulled = new byte[_AttachedSocket.Available];
+                            _AttachedSocket.GetStream().Read(datapulled, 0, datapulled.Length);
                             Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCount, datapulled.Length);
                             _ByteBufferCount += datapulled.Length;
                         }
@@ -175,7 +175,7 @@ namespace InsaneDev.Networking.Server
                                     Array.Copy(_ByteBuffer, 0, packet, 0, size);
                                     Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
                                     _ByteBufferCount -= size;
-                                    PacketsToProcess.Add(Packet.FromByteArray(packet));
+                                    _PacketsToProcess.Add(Packet.FromByteArray(packet));
                                 }
                                 else
                                 {
@@ -203,27 +203,27 @@ namespace InsaneDev.Networking.Server
                         }
                     }
 
-                    lock (PacketsToSend)
+                    lock (_PacketsToSend)
                     {
-                        if (PacketsToSend.Count > 0)
+                        if (_PacketsToSend.Count > 0)
                         {
-                            _tempPacketList.AddRange(PacketsToSend);
-                            PacketsToSend.Clear();
+                            _TempPacketList.AddRange(_PacketsToSend);
+                            _PacketsToSend.Clear();
                         }
                     }
-                    if (_tempPacketList.Count > 0)
+                    if (_TempPacketList.Count > 0)
                     {
-                        _NetStream = new NetworkStream(AttachedSocket.Client);
-                        foreach (byte[] data in _tempPacketList.Select(p => p.ToByteArray()))
+                        _NetStream = new NetworkStream(_AttachedSocket.Client);
+                        foreach (byte[] data in _TempPacketList.Select(p => p.ToByteArray()))
                         {
                             _NetStream.Write(data, 0, data.Length);
                         }
                         _NetStream.Close();
                         _NetStream.Dispose();
                         _NetStream = null;
-                        foreach (Packet p in _tempPacketList) p.Dispose();
+                        foreach (Packet p in _TempPacketList) p.Dispose();
                     }
-                    _tempPacketList.Clear();
+                    _TempPacketList.Clear();
                     if (DateTime.Now - _LastClientUpdate > _ClientUpdateInterval)
                     {
                         _LastClientUpdate += _ClientUpdateInterval;
@@ -236,12 +236,12 @@ namespace InsaneDev.Networking.Server
             {
                 Console.WriteLine(e.Message);
             }
-            if (AttachedSocket != null)
+            if (_AttachedSocket != null)
             {
-                if (AttachedSocket.Connected)
+                if (_AttachedSocket.Connected)
                 {
-                    AttachedSocket.Close();
-                    AttachedSocket.Client.Dispose();
+                    _AttachedSocket.Close();
+                    _AttachedSocket.Client.Dispose();
                 }
             }
             _Connected = false;
@@ -254,7 +254,7 @@ namespace InsaneDev.Networking.Server
             if (Disposed) return;
             Disposed = true;
             _Connected = false;
-            if (AttachedSocket != null && AttachedSocket.Connected) AttachedSocket.Close();
+            if (_AttachedSocket != null && _AttachedSocket.Connected) _AttachedSocket.Close();
 
             _ByteBuffer = null;
 
@@ -270,8 +270,8 @@ namespace InsaneDev.Networking.Server
                 _NetStream.Dispose();
                 _NetStream = null;
             }
-            PacketsToProcess.Clear();
-            PacketsToSend.Clear();
+            _PacketsToProcess.Clear();
+            _PacketsToSend.Clear();
             if (_UpdateThread != null)
             {
                 _UpdateThread.Abort();

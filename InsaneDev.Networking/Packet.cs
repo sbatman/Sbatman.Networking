@@ -13,7 +13,6 @@ namespace InsaneDev.Networking
         public int DataPos;
         public bool Disposed = false;
         public Int16 ParamCount = 0;
-
         private byte[] _ReturnByteArray;
         public Int16 Type;
         private byte[] _Data = new byte[128];
