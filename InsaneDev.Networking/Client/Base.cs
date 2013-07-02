@@ -84,7 +84,7 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        ///     Retruns an int containing the number of waiting prackets
+        /// Retruns an int containing the number of waiting prackets
         /// </summary>
         /// <returns> </returns>
         public int GetPacketsToProcessCount()
@@ -93,7 +93,7 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        ///     Retruns an int containing the number of packets that have not yet been sent
+        /// Retruns an int containing the number of packets that have not yet been sent
         /// </summary>
         /// <returns> </returns>
         public int GetPacketsToSendCount()
