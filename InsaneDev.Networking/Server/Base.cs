@@ -67,8 +67,6 @@ namespace InsaneDev.Networking.Server
 
         private void HandelNewConnection(TcpClient newSocket)
         {
-            try
-            {
                 newSocket.NoDelay = true;
                 lock (_CurrentlyConnectedClients)
                 {
@@ -80,11 +78,6 @@ namespace InsaneDev.Networking.Server
                         _UpdateThread.Start();
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error creating new client, " + e.Message);
-            }
         }
 
         public void SendToAll(Packet p)
@@ -110,7 +103,7 @@ namespace InsaneDev.Networking.Server
                         break;
                     }
                     d.AddRange(_CurrentlyConnectedClients);
-                    foreach (ClientConnection c in d.Where(i => i.Disposed)) _CurrentlyConnectedClients.Remove(c);
+                    foreach (ClientConnection c in d.Where(i => i.IsDisposed())) _CurrentlyConnectedClients.Remove(c);
                     d.Clear();
                 }
                 Thread.Sleep(50);

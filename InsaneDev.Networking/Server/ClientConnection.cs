@@ -20,7 +20,7 @@ namespace InsaneDev.Networking.Server
         protected readonly List<Packet> _PacketsToProcess = new List<Packet>();
         protected readonly List<Packet> _PacketsToSend = new List<Packet>();
         private readonly List<Packet> _TempPacketList = new List<Packet>();
-        public bool Disposed;
+        protected bool Disposed;
         protected byte[] _ByteBuffer;
         protected int _ByteBufferCount;
         protected TimeSpan _ClientUpdateInterval = new TimeSpan(0, 0, 0, 0, 5);
@@ -45,9 +45,7 @@ namespace InsaneDev.Networking.Server
             Packet p = new Packet(9999);
             p.AddInt(_ClientId);
             _PacketsToSend.Add(p);
-// ReSharper disable DoNotCallOverridableMethodsInConstructor
             OnConnect();
-// ReSharper restore DoNotCallOverridableMethodsInConstructor
             _UpdateThread = new Thread(Update);
             _UpdateThread.Start();
         }
@@ -234,7 +232,6 @@ namespace InsaneDev.Networking.Server
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
             }
             if (_AttachedSocket != null)
             {
@@ -249,7 +246,7 @@ namespace InsaneDev.Networking.Server
             Dispose();
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (Disposed) return;
             Disposed = true;
@@ -278,7 +275,10 @@ namespace InsaneDev.Networking.Server
                 _UpdateThread = null;
             }
         }
-
+        public virtual bool IsDisposed()
+        {
+            return Disposed;
+        }
         private static int GetNewClientId()
         {
             _LastClientIDAllocated++;

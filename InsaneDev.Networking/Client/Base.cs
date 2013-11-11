@@ -57,11 +57,11 @@ namespace InsaneDev.Networking.Client
         /// <summary>
         ///     Changes the number of milliseconds between packet checks (this shouldnt be higer then 8ms for timely responces, or lower then 3ms to repvent high cpu usage
         /// </summary>
-        /// <param name="timeBettweenChecksInMs"> Number of ms between checks </param>
-        public void SetPacketCheckInterval(int timeBettweenChecksInMs)
+        /// <param name="timeBetweenChecksInMs"> Number of ms between checks </param>
+        public void SetPacketCheckInterval(int timeBetweenChecksInMs)
         {
-            if (timeBettweenChecksInMs <= 0) timeBettweenChecksInMs = 1;
-            _PacketCheckInterval = timeBettweenChecksInMs;
+            if (timeBetweenChecksInMs <= 0) timeBetweenChecksInMs = 1;
+            _PacketCheckInterval = timeBetweenChecksInMs;
         }
 
         /// <summary>
@@ -230,8 +230,7 @@ namespace InsaneDev.Networking.Client
             catch (Exception e)
             {
                 _Error = true;
-                _ErrorMessage = e.Message;
-                Console.WriteLine("Powerup:Networking - Networking layer failed " + e.Message);
+                _ErrorMessage = e.Message;                
             }
 
             if (_ClientSocket != null)
