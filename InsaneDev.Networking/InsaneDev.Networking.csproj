@@ -32,7 +32,8 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>InsaneDev.Networking Release Key.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -43,9 +44,6 @@
     <Compile Include="Client\Base.cs" />
     <Compile Include="Server\ClientConnection.cs" />
     <Compile Include="Server\Base.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="InsaneDev.Networking Release Key.pfx" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
