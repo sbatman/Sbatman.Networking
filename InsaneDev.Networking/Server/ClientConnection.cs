@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace InsaneDev.Networking.Server
 {
-    public abstract class ClientConnection
+    public abstract class ClientConnection : IDisposable
     {
         private static int _LastClientIDAllocated;
 
@@ -140,99 +140,94 @@ namespace InsaneDev.Networking.Server
 
         private void Update()
         {
-            try
+            while (_Connected)
             {
-                while (_Connected)
+                _Connected = _AttachedSocket.Client.Connected;
+                lock (_PacketsToProcess)
                 {
-                    _Connected = _AttachedSocket.Client.Connected;
-                    lock (_PacketsToProcess)
+                    if (_AttachedSocket.Available > 0)
                     {
-                        if (_AttachedSocket.Available > 0)
+                        byte[] datapulled = new byte[_AttachedSocket.Available];
+                        _AttachedSocket.GetStream().Read(datapulled, 0, datapulled.Length);
+                        Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCount, datapulled.Length);
+                        _ByteBufferCount += datapulled.Length;
+                    }
+                    bool finding = _ByteBufferCount > 11;
+                    while (finding)
+                    {
+                        bool packetStartPresent = true;
+                        for (int x = 0; x < 4; x++)
                         {
-                            byte[] datapulled = new byte[_AttachedSocket.Available];
-                            _AttachedSocket.GetStream().Read(datapulled, 0, datapulled.Length);
-                            Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCount, datapulled.Length);
-                            _ByteBufferCount += datapulled.Length;
+                            if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
+                            packetStartPresent = false;
+                            break;
                         }
-                        bool finding = _ByteBufferCount > 11;
-                        while (finding)
+                        if (packetStartPresent)
                         {
-                            bool packetStartPresent = true;
-                            for (int x = 0; x < 4; x++)
+                            int size = BitConverter.ToInt32(_ByteBuffer, 6);
+                            if (_ByteBufferCount >= size)
                             {
-                                if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
-                                packetStartPresent = false;
-                                break;
-                            }
-                            if (packetStartPresent)
-                            {
-                                int size = BitConverter.ToInt32(_ByteBuffer, 6);
-                                if (_ByteBufferCount >= size)
-                                {
-                                    byte[] packet = new byte[size];
-                                    Array.Copy(_ByteBuffer, 0, packet, 0, size);
-                                    Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
-                                    _ByteBufferCount -= size;
-                                    _PacketsToProcess.Add(Packet.FromByteArray(packet));
-                                }
-                                else
-                                {
-                                    finding = false;
-                                }
+                                byte[] packet = new byte[size];
+                                Array.Copy(_ByteBuffer, 0, packet, 0, size);
+                                Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
+                                _ByteBufferCount -= size;
+                                _PacketsToProcess.Add(Packet.FromByteArray(packet));
                             }
                             else
                             {
-                                int offset = -1;
-                                for (int x = 0; x < _ByteBufferCount; x++)
-                                {
-                                    if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
-                                }
-                                if (offset != -1)
-                                {
-                                    Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCount - offset);
-                                    _ByteBufferCount -= offset;
-                                }
-                                else
-                                {
-                                    _ByteBufferCount = 0;
-                                }
+                                finding = false;
                             }
-                            if (_ByteBufferCount < 12) finding = false;
                         }
-                    }
-
-                    lock (_PacketsToSend)
-                    {
-                        if (_PacketsToSend.Count > 0)
+                        else
                         {
-                            _TempPacketList.AddRange(_PacketsToSend);
-                            _PacketsToSend.Clear();
+                            int offset = -1;
+                            for (int x = 0; x < _ByteBufferCount; x++)
+                            {
+                                if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
+                            }
+                            if (offset != -1)
+                            {
+                                Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCount - offset);
+                                _ByteBufferCount -= offset;
+                            }
+                            else
+                            {
+                                _ByteBufferCount = 0;
+                            }
                         }
+                        if (_ByteBufferCount < 12) finding = false;
                     }
-                    if (_TempPacketList.Count > 0)
-                    {
-                        _NetStream = new NetworkStream(_AttachedSocket.Client);
-                        foreach (byte[] data in _TempPacketList.Select(p => p.ToByteArray()))
-                        {
-                            _NetStream.Write(data, 0, data.Length);
-                        }
-                        _NetStream.Close();
-                        _NetStream.Dispose();
-                        _NetStream = null;
-                        foreach (Packet p in _TempPacketList) p.Dispose();
-                    }
-                    _TempPacketList.Clear();
-                    if (DateTime.Now - _LastClientUpdate > _ClientUpdateInterval)
-                    {
-                        _LastClientUpdate += _ClientUpdateInterval;
-                        ClientUpdateLogic();
-                    }
-                    Thread.Sleep(4);
                 }
+
+                lock (_PacketsToSend)
+                {
+                    if (_PacketsToSend.Count > 0)
+                    {
+                        _TempPacketList.AddRange(_PacketsToSend);
+                        _PacketsToSend.Clear();
+                    }
+                }
+                if (_TempPacketList.Count > 0)
+                {
+                    _NetStream = new NetworkStream(_AttachedSocket.Client);
+                    foreach (byte[] data in _TempPacketList.Select(p => p.ToByteArray()))
+                    {
+                        _NetStream.Write(data, 0, data.Length);
+                    }
+                    _NetStream.Close();
+                    _NetStream.Dispose();
+                    _NetStream = null;
+                    foreach (Packet p in _TempPacketList) p.Dispose();
+                }
+                _TempPacketList.Clear();
+                if (DateTime.Now - _LastClientUpdate > _ClientUpdateInterval)
+                {
+                    _LastClientUpdate += _ClientUpdateInterval;
+                    ClientUpdateLogic();
+                }
+                Thread.Sleep(4);
             }
-            catch (Exception e)
-            {
-            }
+
             if (_AttachedSocket != null)
             {
                 if (_AttachedSocket.Connected)

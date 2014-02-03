@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace InsaneDev.Networking
 {
-    public class Packet
+    public class Packet : IDisposable
     {
         /// <summary>
         /// This 4 byte sequence is used to improve start of packet regognition, it isnt the sole desciptor of the packet start as this would possibly cause issues
