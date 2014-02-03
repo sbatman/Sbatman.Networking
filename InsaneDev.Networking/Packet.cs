@@ -13,7 +13,7 @@ namespace InsaneDev.Networking
         /// This 4 byte sequence is used to improve start of packet regognition, it isnt the sole desciptor of the packet start as this would possibly cause issues
         /// with packets with byte transferes within them that happened to contains this sequence.
         /// </summary>
-        public static readonly byte[] PacketStart = new byte[] {0, 48, 21, 0};
+        public static readonly byte[] PacketStart = {0, 48, 21, 0};
         /// <summary>
         /// The current position in the internal data array
         /// </summary>
@@ -201,7 +201,7 @@ namespace InsaneDev.Networking
         /// <summary>
         /// Adds a Uint32 to the packet
         /// </summary>
-        /// <param name="u"The uint32 to add></param>
+        /// <param name="u">The uint32 to add></param>
         public void AddUInt(UInt32 u)
         {
             _ReturnByteArray = null;
@@ -273,26 +273,11 @@ namespace InsaneDev.Networking
                 {
                     switch ((ParamTypes) _Data[bytepos++])
                     {
-                        case ParamTypes.Double:
-                            _PacketObjects.Add(BitConverter.ToDouble(_Data, bytepos));
-                            bytepos += 8;
-                            break;
-                        case ParamTypes.Float:
-                            _PacketObjects.Add(BitConverter.ToSingle(_Data, bytepos));
-                            bytepos += 4;
-                            break;
-                        case ParamTypes.Int32:
-                            _PacketObjects.Add(BitConverter.ToInt32(_Data, bytepos));
-                            bytepos += 4;
-                            break;
-                        case ParamTypes.Bool:
-                            _PacketObjects.Add(BitConverter.ToBoolean(_Data, bytepos));
-                            bytepos += 1;
-                            break;
-                        case ParamTypes.Long:
-                            _PacketObjects.Add(BitConverter.ToInt64(_Data, bytepos));
-                            bytepos += 8;
-                            break;
+                        case ParamTypes.Double: _PacketObjects.Add(BitConverter.ToDouble(_Data, bytepos));  bytepos += 8;   break;
+                        case ParamTypes.Float:  _PacketObjects.Add(BitConverter.ToSingle(_Data, bytepos));  bytepos += 4;   break;
+                        case ParamTypes.Int32:  _PacketObjects.Add(BitConverter.ToInt32(_Data, bytepos));   bytepos += 4;   break;
+                        case ParamTypes.Bool:   _PacketObjects.Add(BitConverter.ToBoolean(_Data, bytepos)); bytepos += 1;   break;
+                        case ParamTypes.Long:   _PacketObjects.Add(BitConverter.ToInt64(_Data, bytepos));   bytepos += 8;   break;
                         case ParamTypes.BytePacket:
                             byte[] data = new byte[BitConverter.ToInt32(_Data, bytepos)];
                             bytepos += 4;
@@ -300,18 +285,9 @@ namespace InsaneDev.Networking
                             _PacketObjects.Add(data);
                             bytepos += data.Length;
                             break;
-                        case ParamTypes.Uint32:
-                            _PacketObjects.Add(BitConverter.ToUInt32(_Data, bytepos));
-                            bytepos += 4;
-                            break;
-                        case ParamTypes.Ulong:
-                            _PacketObjects.Add(BitConverter.ToUInt64(_Data, bytepos));
-                            bytepos += 8;
-                            break;
-                        case ParamTypes.Short:
-                            _PacketObjects.Add(BitConverter.ToInt16(_Data, bytepos));
-                            bytepos += 2;
-                            break;
+                        case ParamTypes.Uint32: _PacketObjects.Add(BitConverter.ToUInt32(_Data, bytepos));  bytepos += 4;   break;
+                        case ParamTypes.Ulong:  _PacketObjects.Add(BitConverter.ToUInt64(_Data, bytepos));  bytepos += 8;   break;
+                        case ParamTypes.Short:  _PacketObjects.Add(BitConverter.ToInt16(_Data, bytepos));   bytepos += 2;   break;
                     }
                 }
             }
