@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -9,20 +10,59 @@ using System.Threading;
 
 namespace InsaneDev.Networking.Client
 {
+    /// <summary>
+    /// A Base class of a client connection. This can be used to connect to the specified server. All message handeling is performed ASynchronously 
+    /// </summary>
     public class Base
     {
+        /// <summary>
+        /// Buffer of butes used to collect incomming packets and putt hem together
+        /// </summary>
         protected byte[] _ByteBuffer;
-        protected int _ByteBufferCOunt;
+        /// <summary>
+        /// Current point int he bute buffer to use for new data
+        /// </summary>
+        protected int _ByteBufferCount;
+        /// <summary>
+        /// The ID of the client
+        /// </summary>
         protected int _ClientId = -1;
+        /// <summary>
+        /// The TCP socket the client is connected on
+        /// </summary>
         protected TcpClient _ClientSocket = new TcpClient();
+        /// <summary>
+        /// Bool identifing if the client is currently connected or not
+        /// </summary>
         protected bool _Connected;
+        /// <summary>
+        /// Set true in the event of an error
+        /// </summary>
         protected bool _Error;
+        /// <summary>
+        /// Last internal error message
+        /// </summary>
         protected string _ErrorMessage;
-        protected NetworkStream _NetStream;
+
+        /// <summary>
+        /// The interval in MS packets are checked for
+        /// </summary>
         protected int _PacketCheckInterval = 6;
+        /// <summary>
+        /// The thread used for handeling packets
+        /// </summary>
         protected Thread _PacketHandel;
+        /// <summary>
+        /// Queue containing un processed packets
+        /// </summary>
         protected readonly Queue<Packet> _PacketsToProcess = new Queue<Packet>();
+        /// <summary>
+        /// List of packets that have yet to be sent
+        /// </summary>
         protected readonly List<Packet> _PacketsToSend = new List<Packet>();
+        /// <summary>
+        /// The buffer size allocated to this client
+        /// </summary>
         protected int _BufferSize = 1000000;
 
         /// <summary>
@@ -56,11 +96,11 @@ namespace InsaneDev.Networking.Client
         /// <summary>
         ///     Changes the number of milliseconds between packet checks (this shouldnt be higer then 8ms for timely responces, or lower then 3ms to repvent high cpu usage
         /// </summary>
-        /// <param name="timeBettweenChecksInMs"> Number of ms between checks </param>
-        public void SetPacketCheckInterval(int timeBettweenChecksInMs)
+        /// <param name="timeBetweenChecksInMs"> Number of ms between checks </param>
+        public void SetPacketCheckInterval(int timeBetweenChecksInMs)
         {
-            if (timeBettweenChecksInMs <= 0) timeBettweenChecksInMs = 1;
-            _PacketCheckInterval = timeBettweenChecksInMs;
+            if (timeBetweenChecksInMs <= 0) timeBetweenChecksInMs = 1;
+            _PacketCheckInterval = timeBetweenChecksInMs;
         }
 
         /// <summary>
@@ -83,7 +123,7 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        ///     Retruns an int containing the number of waiting prackets
+        /// Retruns an int containing the number of waiting prackets
         /// </summary>
         /// <returns> </returns>
         public int GetPacketsToProcessCount()
@@ -92,7 +132,7 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        ///     Retruns an int containing the number of packets that have not yet been sent
+        /// Retruns an int containing the number of packets that have not yet been sent
         /// </summary>
         /// <returns> </returns>
         public int GetPacketsToSendCount()
@@ -156,24 +196,28 @@ namespace InsaneDev.Networking.Client
 
                     if (templist.Count > 0)
                     {
-                        _NetStream = new NetworkStream(_ClientSocket.Client);
-                        foreach (Packet p in templist)
+                        lock (_ClientSocket)
                         {
-                            byte[] packet = p.ToByteArray();
-                            _NetStream.Write(packet, 0, packet.Length);                         
+                            NetworkStream _NetStream = new NetworkStream(_ClientSocket.Client);
+                            foreach (byte[] packet in templist.Select(p => p.ToByteArray()))
+                            {
+                                _NetStream.Write(packet, 0, packet.Length);
+                            }
+                            _NetStream.Close();
                         }
-                        _NetStream.Close();
                     }
                     templist.Clear();
-
-                    if (_ClientSocket.Available > 0)
+                    lock (_ClientSocket)
                     {
-                        byte[] datapulled = new byte[_ClientSocket.Available];
-                        _ClientSocket.GetStream().Read(datapulled, 0, datapulled.Length);
-                        Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCOunt, datapulled.Length);
-                        _ByteBufferCOunt += datapulled.Length;
+                        if (_ClientSocket.Available > 0)
+                        {
+                            byte[] datapulled = new byte[_ClientSocket.Available];
+                            _ClientSocket.GetStream().Read(datapulled, 0, datapulled.Length);
+                            Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCount, datapulled.Length);
+                            _ByteBufferCount += datapulled.Length;
+                        }
                     }
-                    bool finding = _ByteBufferCOunt > 11;
+                    bool finding = _ByteBufferCount > 11;
                     while (finding)
                     {
                         bool packerstartpresent = true;
@@ -186,12 +230,12 @@ namespace InsaneDev.Networking.Client
                         if (packerstartpresent)
                         {
                             int size = BitConverter.ToInt32(_ByteBuffer, 6);
-                            if (_ByteBufferCOunt >= size)
+                            if (_ByteBufferCount >= size)
                             {
                                 byte[] packet = new byte[size];
                                 Array.Copy(_ByteBuffer, 0, packet, 0, size);
-                                Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCOunt - size);
-                                _ByteBufferCOunt -= size;
+                                Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
+                                _ByteBufferCount -= size;
                                 Packet p = Packet.FromByteArray(packet);
                                 if (p != null) _PacketsToProcess.Enqueue(p);
                             }
@@ -203,21 +247,21 @@ namespace InsaneDev.Networking.Client
                         else
                         {
                             int offset = -1;
-                            for (int x = 0; x < _ByteBufferCOunt; x++)
+                            for (int x = 0; x < _ByteBufferCount; x++)
                             {
                                 if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
                             }
                             if (offset != -1)
                             {
-                                Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCOunt - offset);
-                                _ByteBufferCOunt -= offset;
+                                Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCount - offset);
+                                _ByteBufferCount -= offset;
                             }
                             else
                             {
-                                _ByteBufferCOunt = 0;
+                                _ByteBufferCount = 0;
                             }
                         }
-                        if (_ByteBufferCOunt < 12) finding = false;
+                        if (_ByteBufferCount < 12) finding = false;
                     }
                     lock (_PacketsToProcess)
                     {
@@ -231,7 +275,6 @@ namespace InsaneDev.Networking.Client
             {
                 _Error = true;
                 _ErrorMessage = e.Message;
-                Console.WriteLine("Powerup:Networking - Networking layer failed " + e.Message);
             }
 
             if (_ClientSocket != null)
@@ -242,14 +285,32 @@ namespace InsaneDev.Networking.Client
             _Connected = false;
         }
 
+        /// <summary>
+        /// Returns true if an internal error has occured. This can be retrived with GetError.
+        /// </summary>
+        /// <returns></returns>
         public bool HasErrored()
         {
             return _Error;
         }
 
+        /// <summary>
+        /// Returns the message string of the last error and resets the has error to false
+        /// </summary>
+        /// <returns></returns>
         public string GetError()
         {
+            _Error = false;
             return _ErrorMessage;
+        }
+
+        /// <summary>
+        /// Retruns the internal TCP socket used by this client. Lock the TCPClient when in use to maintain thread safe operations
+        /// </summary>
+        /// <returns></returns>
+        public TcpClient GetInternalSocket()
+        {
+            return _ClientSocket;
         }
     }
 }
