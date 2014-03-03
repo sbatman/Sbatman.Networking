@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 
 #endregion
 
@@ -74,7 +76,10 @@ namespace InsaneDev.Networking
         /// <returns></returns>
         public Packet Copy()
         {
-            Packet p = new Packet(Type) {_Data = new byte[_Data.Length]};
+            Packet p = new Packet(Type)
+            {
+                _Data = new byte[_Data.Length]
+            };
             _Data.CopyTo(p._Data, 0);
             p.DataPos = DataPos;
             if (_PacketObjects != null) p._PacketObjects = new List<object>(_PacketObjects);
@@ -106,13 +111,33 @@ namespace InsaneDev.Networking
             _ReturnByteArray = null;
             int size = byteArray.Length;
             while (DataPos + (size + 5) >= _Data.Length) ExpandDataArray();
-            _Data[DataPos++] = (byte) ParamTypes.BytePacket;
+            _Data[DataPos++] = (byte)ParamTypes.BytePacket;
             BitConverter.GetBytes(byteArray.Length).CopyTo(_Data, DataPos);
             DataPos += 4;
             byteArray.CopyTo(_Data, DataPos);
             DataPos += size;
             ParamCount++;
         }
+
+
+        /// <summary>
+        /// Adds a byte array to the packet Compressed
+        /// </summary>
+        /// <param name="byteArray">The bytearray to add</param>
+        public void AddBytePacketCompressed(byte[] byteArray)
+        {
+            byteArray = Compress(byteArray);
+            _ReturnByteArray = null;
+            int size = byteArray.Length;
+            while (DataPos + (size + 5) >= _Data.Length) ExpandDataArray();
+            _Data[DataPos++] = (byte)ParamTypes.CompressedBytePacket;
+            BitConverter.GetBytes(byteArray.Length).CopyTo(_Data, DataPos);
+            DataPos += 4;
+            byteArray.CopyTo(_Data, DataPos);
+            DataPos += size;
+            ParamCount++;
+        }
+
 
         /// <summary>
         /// Adds a float to the packet
@@ -236,10 +261,10 @@ namespace InsaneDev.Networking
         public static Packet FromByteArray(byte[] data)
         {
             Packet returnPacket = new Packet(BitConverter.ToInt16(data, 10))
-                {
-                    ParamCount = BitConverter.ToInt16(data, 4),
-                    _Data = new byte[BitConverter.ToInt32(data, 6) - 12]
-                };
+            {
+                ParamCount = BitConverter.ToInt16(data, 4),
+                _Data = new byte[BitConverter.ToInt32(data, 6) - 12]
+            };
             returnPacket.DataPos = returnPacket._Data.Length;
             Array.Copy(data, 12, returnPacket._Data, 0, returnPacket._Data.Length);
             returnPacket.UpdateObjects();
@@ -273,11 +298,26 @@ namespace InsaneDev.Networking
                 {
                     switch ((ParamTypes) _Data[bytepos++])
                     {
-                        case ParamTypes.Double: _PacketObjects.Add(BitConverter.ToDouble(_Data, bytepos));  bytepos += 8;   break;
-                        case ParamTypes.Float:  _PacketObjects.Add(BitConverter.ToSingle(_Data, bytepos));  bytepos += 4;   break;
-                        case ParamTypes.Int32:  _PacketObjects.Add(BitConverter.ToInt32(_Data, bytepos));   bytepos += 4;   break;
-                        case ParamTypes.Bool:   _PacketObjects.Add(BitConverter.ToBoolean(_Data, bytepos)); bytepos += 1;   break;
-                        case ParamTypes.Long:   _PacketObjects.Add(BitConverter.ToInt64(_Data, bytepos));   bytepos += 8;   break;
+                        case ParamTypes.Double:
+                            _PacketObjects.Add(BitConverter.ToDouble(_Data, bytepos));
+                            bytepos += 8;
+                            break;
+                        case ParamTypes.Float:
+                            _PacketObjects.Add(BitConverter.ToSingle(_Data, bytepos));
+                            bytepos += 4;
+                            break;
+                        case ParamTypes.Int32:
+                            _PacketObjects.Add(BitConverter.ToInt32(_Data, bytepos));
+                            bytepos += 4;
+                            break;
+                        case ParamTypes.Bool:
+                            _PacketObjects.Add(BitConverter.ToBoolean(_Data, bytepos));
+                            bytepos += 1;
+                            break;
+                        case ParamTypes.Long:
+                            _PacketObjects.Add(BitConverter.ToInt64(_Data, bytepos));
+                            bytepos += 8;
+                            break;
                         case ParamTypes.BytePacket:
                             byte[] data = new byte[BitConverter.ToInt32(_Data, bytepos)];
                             bytepos += 4;
@@ -285,9 +325,25 @@ namespace InsaneDev.Networking
                             _PacketObjects.Add(data);
                             bytepos += data.Length;
                             break;
-                        case ParamTypes.Uint32: _PacketObjects.Add(BitConverter.ToUInt32(_Data, bytepos));  bytepos += 4;   break;
-                        case ParamTypes.Ulong:  _PacketObjects.Add(BitConverter.ToUInt64(_Data, bytepos));  bytepos += 8;   break;
-                        case ParamTypes.Short:  _PacketObjects.Add(BitConverter.ToInt16(_Data, bytepos));   bytepos += 2;   break;
+                        case ParamTypes.Uint32:
+                            _PacketObjects.Add(BitConverter.ToUInt32(_Data, bytepos));
+                            bytepos += 4;
+                            break;
+                        case ParamTypes.Ulong:
+                            _PacketObjects.Add(BitConverter.ToUInt64(_Data, bytepos));
+                            bytepos += 8;
+                            break;
+                        case ParamTypes.Short:
+                            _PacketObjects.Add(BitConverter.ToInt16(_Data, bytepos));
+                            bytepos += 2;
+                            break;
+                        case ParamTypes.CompressedBytePacket:
+                            byte[] data2 = new byte[BitConverter.ToInt32(_Data, bytepos)];
+                            bytepos += 4;
+                            Array.Copy(_Data, bytepos, data2, 0, data2.Length);
+                            _PacketObjects.Add(Uncompress(data2));
+                            bytepos += data2.Length;
+                            break;
                     }
                 }
             }
@@ -321,7 +377,32 @@ namespace InsaneDev.Networking
             Long,
             Uint32,
             Ulong,
-            Short
+            Short,
+            CompressedBytePacket
         };
+
+        public byte[] Compress(byte[] bytes)
+        {
+            using (var ms = new MemoryStream())
+            {
+                using (var ds = new DeflateStream(ms, CompressionMode.Compress))
+                {
+                    ds.Write(bytes, 0, bytes.Length);
+                }
+                return ms.ToArray();
+            }
+        }
+
+        public byte[] Uncompress(byte[] bytes)
+        {
+            using (var ds = new DeflateStream(new MemoryStream(bytes), CompressionMode.Decompress))
+            {
+                using (var ms = new MemoryStream())
+                {
+                    ds.CopyTo(ms);
+                    return ms.ToArray();
+                }
+            }
+        }
     }
 }

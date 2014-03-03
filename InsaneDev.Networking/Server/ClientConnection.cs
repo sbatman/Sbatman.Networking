@@ -37,7 +37,7 @@ namespace InsaneDev.Networking.Server
         /// <param name="newSocket"> </param>
         protected ClientConnection(TcpClient newSocket)
         {
-            _ByteBuffer = new byte[1000000];
+            _ByteBuffer = new byte[10000000];
             _ClientId = GetNewClientId();
             _TimeOfConnection = DateTime.Now;
             _AttachedSocket = newSocket;

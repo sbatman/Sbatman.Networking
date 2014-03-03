@@ -63,7 +63,7 @@ namespace InsaneDev.Networking.Client
         /// <summary>
         /// The buffer size allocated to this client
         /// </summary>
-        protected int _BufferSize = 1000000;
+        protected int _BufferSize = 10000000;
 
         /// <summary>
         ///     Initialise a connection to the speicified adress and port
