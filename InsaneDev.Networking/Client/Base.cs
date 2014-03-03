@@ -11,7 +11,7 @@ using System.Threading;
 namespace InsaneDev.Networking.Client
 {
     /// <summary>
-    /// A Base class of a client connection. This can be used to connect to the specified server. All message handeling is performed ASynchronously 
+    /// A Base class of a client connection. This can be used to connect to the specified server. All message handeling is performed ASynchronously
     /// </summary>
     public class Base
     {
@@ -78,18 +78,19 @@ namespace InsaneDev.Networking.Client
             try
             {
                 _ClientSocket = new TcpClient(serverAddress, port);
+                if (_ClientSocket.Connected)
+                {
+                    _Connected = true;
+                    _PacketHandel = new Thread(Update);
+                    _PacketHandel.Start();
+                    return true;
+                }
             }
             catch
             {
                 Console.WriteLine("NerfCorev2:Networking - Failure to connect to " + serverAddress + " on port " + port);
             }
-            if (_ClientSocket.Connected)
-            {
-                _Connected = true;
-                _PacketHandel = new Thread(Update);
-                _PacketHandel.Start();
-                return true;
-            }
+
             return false;
         }
 
