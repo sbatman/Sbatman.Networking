@@ -57,6 +57,7 @@ namespace InsaneDev.Networking.Client
         /// </summary>
         protected readonly Queue<Packet> _PacketsToProcess = new Queue<Packet>();
         /// <summary>
+        ///
         /// List of packets that have yet to be sent
         /// </summary>
         protected readonly List<Packet> _PacketsToSend = new List<Packet>();
@@ -74,13 +75,32 @@ namespace InsaneDev.Networking.Client
         {
             _ErrorMessage = "";
             _Error = false;
-            _ByteBuffer = new byte[_BufferSize];
+            if (_ByteBuffer == null)
+            {
+                _ByteBuffer = new byte[_BufferSize];
+            }
+            else
+            {
+                for (int i = 0; i < _BufferSize; i++) _ByteBuffer[i] = 0;
+            }
             try
             {
-                _ClientSocket = new TcpClient(serverAddress, port);
+                if (_ClientSocket == null)
+                {
+                    _ClientSocket = new TcpClient(serverAddress, port);
+                }
+                else
+                {
+                    _ClientSocket.Connect(serverAddress, port);
+                }
                 if (_ClientSocket.Connected)
                 {
                     _Connected = true;
+                    if (_PacketHandel != null)
+                    {
+                        _PacketHandel.Abort();
+                        _PacketHandel = null;
+                    }
                     _PacketHandel = new Thread(Update);
                     _PacketHandel.Start();
                     return true;
