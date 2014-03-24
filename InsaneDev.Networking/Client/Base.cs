@@ -11,7 +11,7 @@ using System.Threading;
 namespace InsaneDev.Networking.Client
 {
     /// <summary>
-    /// A Base class of a client connection. This can be used to connect to the specified server. All message handeling is performed ASynchronously 
+    /// A Base class of a client connection. This can be used to connect to the specified server. All message handeling is performed ASynchronously
     /// </summary>
     public class Base
     {
@@ -57,13 +57,14 @@ namespace InsaneDev.Networking.Client
         /// </summary>
         protected readonly Queue<Packet> _PacketsToProcess = new Queue<Packet>();
         /// <summary>
+        ///
         /// List of packets that have yet to be sent
         /// </summary>
         protected readonly List<Packet> _PacketsToSend = new List<Packet>();
         /// <summary>
         /// The buffer size allocated to this client
         /// </summary>
-        protected int _BufferSize = 1000000;
+        protected int _BufferSize = 10000000;
 
         /// <summary>
         ///     Initialise a connection to the speicified adress and port
@@ -74,22 +75,42 @@ namespace InsaneDev.Networking.Client
         {
             _ErrorMessage = "";
             _Error = false;
-            _ByteBuffer = new byte[_BufferSize];
+            if (_ByteBuffer == null)
+            {
+                _ByteBuffer = new byte[_BufferSize];
+            }
+            else
+            {
+                for (int i = 0; i < _BufferSize; i++) _ByteBuffer[i] = 0;
+            }
             try
             {
-                _ClientSocket = new TcpClient(serverAddress, port);
+                if (_ClientSocket == null)
+                {
+                    _ClientSocket = new TcpClient(serverAddress, port);
+                }
+                else
+                {
+                    _ClientSocket.Connect(serverAddress, port);
+                }
+                if (_ClientSocket.Connected)
+                {
+                    _Connected = true;
+                    if (_PacketHandel != null)
+                    {
+                        _PacketHandel.Abort();
+                        _PacketHandel = null;
+                    }
+                    _PacketHandel = new Thread(Update);
+                    _PacketHandel.Start();
+                    return true;
+                }
             }
             catch
             {
                 Console.WriteLine("NerfCorev2:Networking - Failure to connect to " + serverAddress + " on port " + port);
             }
-            if (_ClientSocket.Connected)
-            {
-                _Connected = true;
-                _PacketHandel = new Thread(Update);
-                _PacketHandel.Start();
-                return true;
-            }
+
             return false;
         }
 

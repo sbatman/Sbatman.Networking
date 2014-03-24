@@ -20,7 +20,7 @@ namespace InsaneDev.Networking.Server
         protected readonly List<Packet> _PacketsToProcess = new List<Packet>();
         protected readonly List<Packet> _PacketsToSend = new List<Packet>();
         private readonly List<Packet> _TempPacketList = new List<Packet>();
-        protected bool Disposed;
+        protected bool _Disposed;
         protected byte[] _ByteBuffer;
         protected int _ByteBufferCount;
         protected TimeSpan _ClientUpdateInterval = new TimeSpan(0, 0, 0, 0, 5);
@@ -37,7 +37,7 @@ namespace InsaneDev.Networking.Server
         /// <param name="newSocket"> </param>
         protected ClientConnection(TcpClient newSocket)
         {
-            _ByteBuffer = new byte[1000000];
+            _ByteBuffer = new byte[10000000];
             _ClientId = GetNewClientId();
             _TimeOfConnection = DateTime.Now;
             _AttachedSocket = newSocket;
@@ -140,111 +140,118 @@ namespace InsaneDev.Networking.Server
 
         private void Update()
         {
-            while (_Connected)
+            try
             {
-                _Connected = _AttachedSocket.Client.Connected;
-                lock (_PacketsToProcess)
+                while (_Connected)
                 {
-                    if (_AttachedSocket.Available > 0)
+                    _Connected = _AttachedSocket.Client.Connected;
+                    lock (_PacketsToProcess)
                     {
-                        byte[] datapulled = new byte[_AttachedSocket.Available];
-                        _AttachedSocket.GetStream().Read(datapulled, 0, datapulled.Length);
-                        Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCount, datapulled.Length);
-                        _ByteBufferCount += datapulled.Length;
-                    }
-                    bool finding = _ByteBufferCount > 11;
-                    while (finding)
-                    {
-                        bool packetStartPresent = true;
-                        for (int x = 0; x < 4; x++)
+                        if (_AttachedSocket.Available > 0)
                         {
-                            if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
-                            packetStartPresent = false;
-                            break;
+                            byte[] datapulled = new byte[_AttachedSocket.Available];
+                            _AttachedSocket.GetStream().Read(datapulled, 0, datapulled.Length);
+                            Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCount, datapulled.Length);
+                            _ByteBufferCount += datapulled.Length;
                         }
-                        if (packetStartPresent)
+                        bool finding = _ByteBufferCount > 11;
+                        while (finding)
                         {
-                            int size = BitConverter.ToInt32(_ByteBuffer, 6);
-                            if (_ByteBufferCount >= size)
+                            bool packetStartPresent = true;
+                            for (int x = 0; x < 4; x++)
                             {
-                                byte[] packet = new byte[size];
-                                Array.Copy(_ByteBuffer, 0, packet, 0, size);
-                                Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
-                                _ByteBufferCount -= size;
-                                _PacketsToProcess.Add(Packet.FromByteArray(packet));
+                                if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
+                                packetStartPresent = false;
+                                break;
+                            }
+                            if (packetStartPresent)
+                            {
+                                int size = BitConverter.ToInt32(_ByteBuffer, 6);
+                                if (_ByteBufferCount >= size)
+                                {
+                                    byte[] packet = new byte[size];
+                                    Array.Copy(_ByteBuffer, 0, packet, 0, size);
+                                    Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
+                                    _ByteBufferCount -= size;
+                                    _PacketsToProcess.Add(Packet.FromByteArray(packet));
+                                }
+                                else
+                                {
+                                    finding = false;
+                                }
                             }
                             else
                             {
-                                finding = false;
+                                int offset = -1;
+                                for (int x = 0; x < _ByteBufferCount; x++)
+                                {
+                                    if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
+                                }
+                                if (offset != -1)
+                                {
+                                    Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCount - offset);
+                                    _ByteBufferCount -= offset;
+                                }
+                                else
+                                {
+                                    _ByteBufferCount = 0;
+                                }
                             }
+                            if (_ByteBufferCount < 12) finding = false;
                         }
-                        else
+                    }
+
+                    lock (_PacketsToSend)
+                    {
+                        if (_PacketsToSend.Count > 0)
                         {
-                            int offset = -1;
-                            for (int x = 0; x < _ByteBufferCount; x++)
-                            {
-                                if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
-                            }
-                            if (offset != -1)
-                            {
-                                Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCount - offset);
-                                _ByteBufferCount -= offset;
-                            }
-                            else
-                            {
-                                _ByteBufferCount = 0;
-                            }
+                            _TempPacketList.AddRange(_PacketsToSend);
+                            _PacketsToSend.Clear();
                         }
-                        if (_ByteBufferCount < 12) finding = false;
                     }
+                    if (_TempPacketList.Count > 0)
+                    {
+                        _NetStream = new NetworkStream(_AttachedSocket.Client);
+                        foreach (byte[] data in _TempPacketList.Select(p => p.ToByteArray()))
+                        {
+                            _NetStream.Write(data, 0, data.Length);
+                        }
+                        _NetStream.Close();
+                        _NetStream.Dispose();
+                        _NetStream = null;
+                        foreach (Packet p in _TempPacketList) p.Dispose();
+                    }
+                    _TempPacketList.Clear();
+                    if (DateTime.Now - _LastClientUpdate > _ClientUpdateInterval)
+                    {
+                        _LastClientUpdate += _ClientUpdateInterval;
+                        ClientUpdateLogic();
+                    }
+                    Thread.Sleep(4);
                 }
 
-                lock (_PacketsToSend)
+                if (_AttachedSocket != null)
                 {
-                    if (_PacketsToSend.Count > 0)
+                    if (_AttachedSocket.Connected)
                     {
-                        _TempPacketList.AddRange(_PacketsToSend);
-                        _PacketsToSend.Clear();
+                        _AttachedSocket.Close();
+                        _AttachedSocket.Client.Dispose();
                     }
                 }
-                if (_TempPacketList.Count > 0)
-                {
-                    _NetStream = new NetworkStream(_AttachedSocket.Client);
-                    foreach (byte[] data in _TempPacketList.Select(p => p.ToByteArray()))
-                    {
-                        _NetStream.Write(data, 0, data.Length);
-                    }
-                    _NetStream.Close();
-                    _NetStream.Dispose();
-                    _NetStream = null;
-                    foreach (Packet p in _TempPacketList) p.Dispose();
-                }
-                _TempPacketList.Clear();
-                if (DateTime.Now - _LastClientUpdate > _ClientUpdateInterval)
-                {
-                    _LastClientUpdate += _ClientUpdateInterval;
-                    ClientUpdateLogic();
-                }
-                Thread.Sleep(4);
+                _Connected = false;
+                OnDisconnect();
+                Dispose();
             }
-
-            if (_AttachedSocket != null)
+            catch (Exception e)
             {
-                if (_AttachedSocket.Connected)
-                {
-                    _AttachedSocket.Close();
-                    _AttachedSocket.Client.Dispose();
-                }
+                Console.WriteLine("Client Exception - "+e);
             }
-            _Connected = false;
-            OnDisconnect();
-            Dispose();
         }
 
         public virtual void Dispose()
         {
-            if (Disposed) return;
-            Disposed = true;
+            if (_Disposed) return;
+            _Disposed = true;
             _Connected = false;
             if (_AttachedSocket != null && _AttachedSocket.Connected) _AttachedSocket.Close();
 
@@ -272,7 +279,7 @@ namespace InsaneDev.Networking.Server
         }
         public virtual bool IsDisposed()
         {
-            return Disposed;
+            return _Disposed;
         }
         private static int GetNewClientId()
         {
