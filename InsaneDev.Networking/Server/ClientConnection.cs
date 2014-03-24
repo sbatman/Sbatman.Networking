@@ -20,7 +20,7 @@ namespace InsaneDev.Networking.Server
         protected readonly List<Packet> _PacketsToProcess = new List<Packet>();
         protected readonly List<Packet> _PacketsToSend = new List<Packet>();
         private readonly List<Packet> _TempPacketList = new List<Packet>();
-        protected bool Disposed;
+        protected bool _Disposed;
         protected byte[] _ByteBuffer;
         protected int _ByteBufferCount;
         protected TimeSpan _ClientUpdateInterval = new TimeSpan(0, 0, 0, 0, 5);
@@ -244,14 +244,14 @@ namespace InsaneDev.Networking.Server
             }
             catch (Exception e)
             {
-                Console.WriteLine("Client Exception - "+e.ToString());
+                Console.WriteLine("Client Exception - "+e);
             }
         }
 
         public virtual void Dispose()
         {
-            if (Disposed) return;
-            Disposed = true;
+            if (_Disposed) return;
+            _Disposed = true;
             _Connected = false;
             if (_AttachedSocket != null && _AttachedSocket.Connected) _AttachedSocket.Close();
 
@@ -279,7 +279,7 @@ namespace InsaneDev.Networking.Server
         }
         public virtual bool IsDisposed()
         {
-            return Disposed;
+            return _Disposed;
         }
         private static int GetNewClientId()
         {
