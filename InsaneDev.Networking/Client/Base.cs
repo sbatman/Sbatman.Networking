@@ -64,15 +64,17 @@ namespace InsaneDev.Networking.Client
         /// <summary>
         /// The buffer size allocated to this client
         /// </summary>
-        protected int _BufferSize = 10000000;
+        protected int _BufferSize;
 
         /// <summary>
         ///     Initialise a connection to the speicified adress and port
         /// </summary>
         /// <param name="serverAddress"> Adress of server to attempt to connect to </param>
-        /// <param name="port"> </param>
-        public bool Connect(String serverAddress, int port)
+        /// <param name="port">The port over which to connect</param>
+        /// <param name="bufferSize">The size in bytes of the internal store for recieved but unprocessed packets</param>
+        public bool Connect(String serverAddress, int port, int bufferSize = 50000)
         {
+			_BufferSize=50000;
             _ErrorMessage = "";
             _Error = false;
             if (_ByteBuffer == null)
@@ -333,5 +335,16 @@ namespace InsaneDev.Networking.Client
         {
             return _ClientSocket;
         }
+		
+		/// <summary>
+		/// Gets the size of the internal buffer array that stores incoming but unhandled packets.
+		/// </summary>
+		/// <returns>
+		/// The internal buffer size in bytes.
+		/// </returns>
+		public int GetInternalBufferSize()
+		{
+			return _BufferSize;
+		}
     }
 }
