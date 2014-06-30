@@ -381,7 +381,13 @@ namespace InsaneDev.Networking
             CompressedBytePacket
         };
 
-        public byte[] Compress(byte[] bytes)
+		/// <summary>
+		/// Compress the specified bytes.
+		/// </summary>
+		/// <param name='bytes'>
+		/// Bytes.
+		/// </param>
+        public static byte[] Compress(byte[] bytes)
         {
             using (var ms = new MemoryStream())
             {
@@ -393,7 +399,13 @@ namespace InsaneDev.Networking
             }
         }
 
-        public byte[] Uncompress(byte[] bytes)
+		/// <summary>
+		/// Uncompress the specified bytes.
+		/// </summary>
+		/// <param name='bytes'>
+		/// Bytes.
+		/// </param>
+        public static byte[] Uncompress(byte[] bytes)
         {
             using (var ds = new DeflateStream(new MemoryStream(bytes), CompressionMode.Decompress))
             {

@@ -24,10 +24,6 @@ namespace InsaneDev.Networking.Client
         /// </summary>
         protected int _ByteBufferCount;
         /// <summary>
-        /// The ID of the client
-        /// </summary>
-        protected int _ClientId = -1;
-        /// <summary>
         /// The TCP socket the client is connected on
         /// </summary>
         protected TcpClient _ClientSocket = new TcpClient();
@@ -176,10 +172,10 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        ///     Send multiplw packets to the connected server
+        ///     Send multiple packets to the connected server
         /// </summary>
-        /// <param name="packets"> List of packets to send </param>
-        public virtual void SendPackets(List<Packet> packets)
+        /// <param name="packets"> List of packets to send</param>
+        public virtual void SendPacket(IEnumerable<Packet> packets)
         {
             lock (_PacketsToSend)
             {
