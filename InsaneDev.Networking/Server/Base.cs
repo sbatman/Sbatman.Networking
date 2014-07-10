@@ -13,6 +13,9 @@ namespace InsaneDev.Networking.Server
 {
     public class Base
     {
+        /// <summary>
+        /// The underlying TCP listener class
+        /// </summary>
         protected TcpListener _TcpListener;
         protected Thread _ListeningThread;
         protected Thread _UpdateThread;
