@@ -8,7 +8,7 @@ namespace Example_Server
     class Program
     {
         private static readonly object _LockingObject = new object();
-        static void Main(string[] args)
+        static void Main()
         {
             Base server = new Base();//Create an instance of the server
 
