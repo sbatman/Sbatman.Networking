@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using InsaneDev.Networking;
 using InsaneDev.Networking.Client;
 
@@ -11,16 +7,16 @@ namespace Example_Client
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            InsaneDev.Networking.Client.Base client = new Base();
-            client.Connect("127.0.0.1", 6789);
-            while (client.IsConnected())
+            Base client = new Base();//Create an instance of the client used to connect to the server
+            client.Connect("127.0.0.1", 6789);//Connect to the server using the ip and port provided
+            while (client.IsConnected())//Whilst we are connected to the server
             {
-                Packet p = new Packet(10);
-                p.AddLong(DateTime.Now.Ticks);
-                client.SendPacket(p);
-                Thread.Sleep(20);
+                Packet p = new Packet(10);//Create an empty packet of type 10
+                p.AddLong(DateTime.Now.Ticks);//Add to the packet a long, in this case the current time in Ticks
+                client.SendPacket(p);//Send the packet over the connection (packet auto disposes when sent)
+                Thread.Sleep(20);//Wait for 20 ms before repeating
             }
         }
     }
