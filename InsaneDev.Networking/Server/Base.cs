@@ -13,13 +13,37 @@ namespace InsaneDev.Networking.Server
 {
     public class Base
     {
+        /// <summary>
+        /// The underlying TCP listener class
+        /// </summary>
         protected TcpListener _TcpListener;
+        /// <summary>
+        /// The thread that the connection listening logic is running on
+        /// </summary>
         protected Thread _ListeningThread;
+        /// <summary>
+        /// The thread that is used to keep the internal update of the server functioning
+        /// </summary>
         protected Thread _UpdateThread;
+        /// <summary>
+        /// Bool representing whether the server is listening or not
+        /// </summary>
         protected bool _Listening;
+        /// <summary>
+        /// Bool representing whether the server is running or not
+        /// </summary>
         protected bool _Running;
+        /// <summary>
+        /// A list of currently connected clients
+        /// </summary>
         protected List<ClientConnection> _CurrentlyConnectedClients;
+        /// <summary>
+        /// The endpoint onwhich the server is reacting to connection requests
+        /// </summary>
         protected IPEndPoint _TCPLocalEndPoint;
+        /// <summary>
+        /// The type used to generate a clientconnection instance
+        /// </summary>
         protected Type _ClientType;
 
         /// <summary>
@@ -51,6 +75,9 @@ namespace InsaneDev.Networking.Server
             _Listening = false;
         }
 
+        /// <summary>
+        /// When started this logic listens for and reacts to incoming connection requests
+        /// </summary>
         private void ListenLoop()
         {
             _TcpListener = new TcpListener(_TCPLocalEndPoint);
@@ -65,6 +92,10 @@ namespace InsaneDev.Networking.Server
             _Listening = false;
         }
 
+        /// <summary>
+        /// This Handels the new connections
+        /// </summary>
+        /// <param name="newSocket">The socket the connectionw as made on</param>
         private void HandelNewConnection(TcpClient newSocket)
         {
                 newSocket.NoDelay = true;
@@ -80,6 +111,10 @@ namespace InsaneDev.Networking.Server
                 }
         }
 
+        /// <summary>
+        /// Sends a packet to all connected clients and then disposes of the packet
+        /// </summary>
+        /// <param name="p">The packet to send, Withh dispose once sent</param>
         public void SendToAll(Packet p)
         {
             List<ClientConnection> d = new List<ClientConnection>();
@@ -90,6 +125,9 @@ namespace InsaneDev.Networking.Server
             p.Dispose();
         }
 
+        /// <summary>
+        /// The internal update loop of the server
+        /// </summary>
         private void UpdateLoop()
         {
             while (_Running)

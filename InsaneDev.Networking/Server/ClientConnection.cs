@@ -13,6 +13,17 @@ namespace InsaneDev.Networking.Server
 {
     public abstract class ClientConnection : IDisposable
     {
+        /// <summary>
+        /// The id of the packet sent when connection is established
+        /// </summary>
+        private const int CONNECT_PACKET = 9999;
+        /// <summary>
+        /// The size in KB of the internal buffer for storing incoming data. Once a Packet
+        /// has been converted from the byte[] to the actual packet, it does not count towards
+        /// this limit. Packets above this size are lost.
+        /// </summary>
+        public const int INTERNAL_BUFFER_KB = 1024;
+
         private static int _LastClientIDAllocated;
 
         protected readonly TcpClient _AttachedSocket;
@@ -37,12 +48,12 @@ namespace InsaneDev.Networking.Server
         /// <param name="newSocket"> </param>
         protected ClientConnection(TcpClient newSocket)
         {
-            _ByteBuffer = new byte[10000000];
+            _ByteBuffer = new byte[INTERNAL_BUFFER_KB * 1024];
             _ClientId = GetNewClientId();
             _TimeOfConnection = DateTime.Now;
             _AttachedSocket = newSocket;
             _Connected = true;
-            Packet p = new Packet(9999);
+            Packet p = new Packet(CONNECT_PACKET);
             p.AddInt(_ClientId);
             _PacketsToSend.Add(p);
             OnConnect();
@@ -50,8 +61,17 @@ namespace InsaneDev.Networking.Server
             _UpdateThread.Start();
         }
 
+        /// <summary>
+        /// This function is called when the connection with the client is established
+        /// </summary>
         protected abstract void OnConnect();
+        /// <summary>
+        /// This function is called when the connection with the client is lost
+        /// </summary>
         protected abstract void OnDisconnect();
+        /// <summary>
+        /// This function is called at a regular interval to handel incoming packets
+        /// </summary>
         protected abstract void ClientUpdateLogic();
 
         /// <summary>
@@ -73,7 +93,13 @@ namespace InsaneDev.Networking.Server
             packets.Clear();
         }
 
-        protected virtual List<Packet> GetOutStandingProcessingPackets()
+        /// <summary>
+        /// Returns all the currently outstanding packets that need processing (with a defualt maximum of 1000)
+        /// They are removed from the processing queue when this function returns
+        /// </summary>
+        /// <param name="maximum">The number upper limit of packets to get in one call, default is 1000</param>
+        /// <returns>A list containing the packets that require processing</returns>
+        protected virtual List<Packet> GetOutStandingProcessingPackets(int maximum = 1000)
         {
             List<Packet> newList = new List<Packet>();
             lock (_PacketsToProcess)
@@ -244,10 +270,13 @@ namespace InsaneDev.Networking.Server
             }
             catch (Exception e)
             {
-                Console.WriteLine("Client Exception - "+e);
+                Console.WriteLine("Client Exception - " + e);
             }
         }
 
+        /// <summary>
+        /// Disposes of the client connection, this will cause the buffers to be cleared and any outstanding steams to be flushed and closed
+        /// </summary>
         public virtual void Dispose()
         {
             if (_Disposed) return;
@@ -277,10 +306,20 @@ namespace InsaneDev.Networking.Server
                 _UpdateThread = null;
             }
         }
+
+        /// <summary>
+        /// Returns whether this Client Connection has been disposed
+        /// </summary>
+        /// <returns>True if disposed else false</returns>
         public virtual bool IsDisposed()
         {
             return _Disposed;
         }
+
+        /// <summary>
+        /// Returns the client ID of this client connection
+        /// </summary>
+        /// <returns>The id of the client connection</returns>
         private static int GetNewClientId()
         {
             _LastClientIDAllocated++;
