@@ -217,12 +217,12 @@ namespace InsaneDev.Networking.Client
                     {
                         lock (_ClientSocket)
                         {
-                            NetworkStream _NetStream = new NetworkStream(_ClientSocket.Client);
+                            NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
                             foreach (byte[] packet in templist.Select(p => p.ToByteArray()))
                             {
-                                _NetStream.Write(packet, 0, packet.Length);
+                                netStream.Write(packet, 0, packet.Length);
                             }
-                            _NetStream.Close();
+                            netStream.Close();
                         }
                     }
                     templist.Clear();

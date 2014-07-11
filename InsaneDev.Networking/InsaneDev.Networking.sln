@@ -1,7 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsaneDev.Networking", "InsaneDev.Networking.csproj", "{E627BD2D-226A-4061-BD4E-7E86CF56936D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-Server", "Example\Example-Server\Example-Server.csproj", "{6E56BDF8-E45F-4FB6-B926-B2D75283C452}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-Client", "Example\Example-Client\Example-Client.csproj", "{2D1235E1-5516-4236-AC10-24225F7F72D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +19,14 @@ Global
 		{E627BD2D-226A-4061-BD4E-7E86CF56936D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E627BD2D-226A-4061-BD4E-7E86CF56936D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E627BD2D-226A-4061-BD4E-7E86CF56936D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E56BDF8-E45F-4FB6-B926-B2D75283C452}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E56BDF8-E45F-4FB6-B926-B2D75283C452}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E56BDF8-E45F-4FB6-B926-B2D75283C452}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E56BDF8-E45F-4FB6-B926-B2D75283C452}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D1235E1-5516-4236-AC10-24225F7F72D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D1235E1-5516-4236-AC10-24225F7F72D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D1235E1-5516-4236-AC10-24225F7F72D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D1235E1-5516-4236-AC10-24225F7F72D4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
