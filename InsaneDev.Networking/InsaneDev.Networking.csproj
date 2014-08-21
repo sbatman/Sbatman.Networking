@@ -9,8 +9,8 @@
     <OutputType>Library</OutputType>
     <RootNamespace>InsaneDev.Networking</RootNamespace>
     <AssemblyName>InsaneDev.Networking</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <AssemblyInfoFilePath>AssemblyInfo.cs</AssemblyInfoFilePath>
     <UpdateAssemblyVersion>True</UpdateAssemblyVersion>
     <UpdateAssemblyFileVersion>True</UpdateAssemblyFileVersion>
