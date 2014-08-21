@@ -98,17 +98,17 @@ namespace InsaneDev.Networking.Server
         /// <param name="newSocket">The socket the connectionw as made on</param>
         private void HandelNewConnection(TcpClient newSocket)
         {
-                newSocket.NoDelay = true;
-                lock (_CurrentlyConnectedClients)
+            newSocket.NoDelay = true;
+            lock (_CurrentlyConnectedClients)
+            {
+                _CurrentlyConnectedClients.Add((ClientConnection)Activator.CreateInstance(_ClientType, new object[] { newSocket }));
+                if (!_Running)
                 {
-                    _CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(_ClientType, new object[] {newSocket}));
-                    if (!_Running)
-                    {
-                        _Running = true;
-                        _UpdateThread = new Thread(UpdateLoop);
-                        _UpdateThread.Start();
-                    }
+                    _Running = true;
+                    _UpdateThread = new Thread(UpdateLoop);
+                    _UpdateThread.Start();
                 }
+            }
         }
 
         /// <summary>
@@ -123,6 +123,11 @@ namespace InsaneDev.Networking.Server
 
             d.Clear();
             p.Dispose();
+        }
+
+        public void Dipose()
+        {
+            _Running = false;
         }
 
         /// <summary>
@@ -146,6 +151,20 @@ namespace InsaneDev.Networking.Server
                 }
                 Thread.Sleep(50);
             }
+            //Time to dispose
+            lock (_CurrentlyConnectedClients)
+            {
+                foreach (ClientConnection client in _CurrentlyConnectedClients)
+                {
+                    client.Disconnect();
+                    client.Dispose();
+                }
+            }
+            _CurrentlyConnectedClients.Clear();
+            _CurrentlyConnectedClients = null;
+            _ListeningThread = null;
+            _TcpListener.Stop();
+            _TcpListener = null;
         }
 
         /// <summary>

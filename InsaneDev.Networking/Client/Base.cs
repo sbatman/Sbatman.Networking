@@ -70,7 +70,7 @@ namespace InsaneDev.Networking.Client
         /// <param name="bufferSize">The size in bytes of the internal store for recieved but unprocessed packets</param>
         public bool Connect(String serverAddress, int port, int bufferSize = 50000)
         {
-			_BufferSize=50000;
+            _BufferSize = 50000;
             _ErrorMessage = "";
             _Error = false;
             if (_ByteBuffer == null)
@@ -142,6 +142,19 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
+        /// Injects packets into the process list as though they had been recieved over the network, great for debugging
+        /// and for local server/client combo's
+        /// </summary>
+        /// <param name="p">The packet to inject</param>
+        public void InjectToPacketsToProcess(Packet p)
+        {
+            lock (_PacketsToProcess)
+            {
+                _PacketsToProcess.Enqueue(p);
+            }
+        }
+
+        /// <summary>
         /// Retruns an int containing the number of waiting prackets
         /// </summary>
         /// <returns> </returns>
@@ -160,7 +173,7 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        ///     Sends a packet to the connected server
+        ///     Sends a packet to the connected server, and diposes the packet once sent.
         /// </summary>
         /// <param name="packet"> Packet to send </param>
         public virtual void SendPacket(Packet packet)
@@ -218,9 +231,11 @@ namespace InsaneDev.Networking.Client
                         lock (_ClientSocket)
                         {
                             NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
-                            foreach (byte[] packet in templist.Select(p => p.ToByteArray()))
+                            foreach (Packet packet in templist)
                             {
-                                netStream.Write(packet, 0, packet.Length);
+                                byte[] data = packet.ToByteArray();
+                                netStream.Write(data, 0, data.Length);
+                                packet.Dispose();
                             }
                             netStream.Close();
                         }
@@ -331,16 +346,16 @@ namespace InsaneDev.Networking.Client
         {
             return _ClientSocket;
         }
-		
-		/// <summary>
-		/// Gets the size of the internal buffer array that stores incoming but unhandled packets.
-		/// </summary>
-		/// <returns>
-		/// The internal buffer size in bytes.
-		/// </returns>
-		public int GetInternalBufferSize()
-		{
-			return _BufferSize;
-		}
+
+        /// <summary>
+        /// Gets the size of the internal buffer array that stores incoming but unhandled packets.
+        /// </summary>
+        /// <returns>
+        /// The internal buffer size in bytes.
+        /// </returns>
+        public int GetInternalBufferSize()
+        {
+            return _BufferSize;
+        }
     }
 }
