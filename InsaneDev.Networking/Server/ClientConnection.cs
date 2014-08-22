@@ -14,13 +14,14 @@ namespace InsaneDev.Networking.Server
     public abstract class ClientConnection : IDisposable
     {
         /// <summary>
-        /// The id of the packet sent when connection is established
+        ///     The id of the packet sent when connection is established
         /// </summary>
         private const int CONNECT_PACKET = 9999;
+
         /// <summary>
-        /// The size in KB of the internal buffer for storing incoming data. Once a Packet
-        /// has been converted from the byte[] to the actual packet, it does not count towards
-        /// this limit. Packets above this size are lost.
+        ///     The size in KB of the internal buffer for storing incoming data. Once a Packet
+        ///     has been converted from the byte[] to the actual packet, it does not count towards
+        ///     this limit. Packets above this size are lost.
         /// </summary>
         public const int INTERNAL_BUFFER_KB = 1024;
 
@@ -31,12 +32,12 @@ namespace InsaneDev.Networking.Server
         protected readonly List<Packet> _PacketsToProcess = new List<Packet>();
         protected readonly List<Packet> _PacketsToSend = new List<Packet>();
         private readonly List<Packet> _TempPacketList = new List<Packet>();
-        protected bool _Disposed;
         protected byte[] _ByteBuffer;
         protected int _ByteBufferCount;
         protected TimeSpan _ClientUpdateInterval = new TimeSpan(0, 0, 0, 0, 5);
         protected bool _Connected;
         protected MemoryStream _CurrentDataStream;
+        protected bool _Disposed;
         protected DateTime _LastClientUpdate = DateTime.Now;
         protected NetworkStream _NetStream;
         protected DateTime _TimeOfConnection;
@@ -48,7 +49,7 @@ namespace InsaneDev.Networking.Server
         /// <param name="newSocket"> </param>
         protected ClientConnection(TcpClient newSocket)
         {
-            _ByteBuffer = new byte[INTERNAL_BUFFER_KB * 1024];
+            _ByteBuffer = new byte[INTERNAL_BUFFER_KB*1024];
             _ClientId = GetNewClientId();
             _TimeOfConnection = DateTime.Now;
             _AttachedSocket = newSocket;
@@ -62,15 +63,51 @@ namespace InsaneDev.Networking.Server
         }
 
         /// <summary>
-        /// This function is called when the connection with the client is established
+        ///     Disposes of the client connection, this will cause the buffers to be cleared and any outstanding steams to be
+        ///     flushed and closed
+        /// </summary>
+        public virtual void Dispose()
+        {
+            if (_Disposed) return;
+            _Disposed = true;
+            _Connected = false;
+            if (_AttachedSocket != null && _AttachedSocket.Connected) _AttachedSocket.Close();
+
+            _ByteBuffer = null;
+
+            if (_CurrentDataStream != null)
+            {
+                _CurrentDataStream.Close();
+                _CurrentDataStream.Dispose();
+                _CurrentDataStream = null;
+            }
+            if (_NetStream != null)
+            {
+                _NetStream.Close();
+                _NetStream.Dispose();
+                _NetStream = null;
+            }
+            _PacketsToProcess.Clear();
+            _PacketsToSend.Clear();
+            if (_UpdateThread != null)
+            {
+                _UpdateThread.Abort();
+                _UpdateThread = null;
+            }
+        }
+
+        /// <summary>
+        ///     This function is called when the connection with the client is established
         /// </summary>
         protected abstract void OnConnect();
+
         /// <summary>
-        /// This function is called when the connection with the client is lost
+        ///     This function is called when the connection with the client is lost
         /// </summary>
         protected abstract void OnDisconnect();
+
         /// <summary>
-        /// This function is called at a regular interval to handel incoming packets
+        ///     This function is called at a regular interval to handel incoming packets
         /// </summary>
         protected abstract void ClientUpdateLogic();
 
@@ -94,8 +131,8 @@ namespace InsaneDev.Networking.Server
         }
 
         /// <summary>
-        /// Returns all the currently outstanding packets that need processing (with a defualt maximum of 1000)
-        /// They are removed from the processing queue when this function returns
+        ///     Returns all the currently outstanding packets that need processing (with a defualt maximum of 1000)
+        ///     They are removed from the processing queue when this function returns
         /// </summary>
         /// <param name="maximum">The number upper limit of packets to get in one call, default is 1000</param>
         /// <returns>A list containing the packets that require processing</returns>
@@ -275,40 +312,7 @@ namespace InsaneDev.Networking.Server
         }
 
         /// <summary>
-        /// Disposes of the client connection, this will cause the buffers to be cleared and any outstanding steams to be flushed and closed
-        /// </summary>
-        public virtual void Dispose()
-        {
-            if (_Disposed) return;
-            _Disposed = true;
-            _Connected = false;
-            if (_AttachedSocket != null && _AttachedSocket.Connected) _AttachedSocket.Close();
-
-            _ByteBuffer = null;
-
-            if (_CurrentDataStream != null)
-            {
-                _CurrentDataStream.Close();
-                _CurrentDataStream.Dispose();
-                _CurrentDataStream = null;
-            }
-            if (_NetStream != null)
-            {
-                _NetStream.Close();
-                _NetStream.Dispose();
-                _NetStream = null;
-            }
-            _PacketsToProcess.Clear();
-            _PacketsToSend.Clear();
-            if (_UpdateThread != null)
-            {
-                _UpdateThread.Abort();
-                _UpdateThread = null;
-            }
-        }
-
-        /// <summary>
-        /// Returns whether this Client Connection has been disposed
+        ///     Returns whether this Client Connection has been disposed
         /// </summary>
         /// <returns>True if disposed else false</returns>
         public virtual bool IsDisposed()
@@ -317,7 +321,7 @@ namespace InsaneDev.Networking.Server
         }
 
         /// <summary>
-        /// Returns the client ID of this client connection
+        ///     Returns the client ID of this client connection
         /// </summary>
         /// <returns>The id of the client connection</returns>
         private static int GetNewClientId()

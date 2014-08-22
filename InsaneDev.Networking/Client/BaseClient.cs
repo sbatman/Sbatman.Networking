@@ -10,56 +10,65 @@ using System.Threading;
 namespace InsaneDev.Networking.Client
 {
     /// <summary>
-    /// A Base class of a client connection. This can be used to connect to the specified server. All message handeling is performed ASynchronously
+    ///     A Base class of a client connection. This can be used to connect to the specified server. All message handeling is
+    ///     performed ASynchronously
     /// </summary>
     public class BaseClient
     {
         /// <summary>
-        /// Buffer of butes used to collect incomming packets and putt hem together
+        ///     Queue containing un processed packets
+        /// </summary>
+        protected readonly Queue<Packet> _PacketsToProcess = new Queue<Packet>();
+
+        /// <summary>
+        ///     List of packets that have yet to be sent
+        /// </summary>
+        protected readonly List<Packet> _PacketsToSend = new List<Packet>();
+
+        /// <summary>
+        ///     The buffer size allocated to this client
+        /// </summary>
+        protected int _BufferSize;
+
+        /// <summary>
+        ///     Buffer of butes used to collect incomming packets and putt hem together
         /// </summary>
         protected byte[] _ByteBuffer;
+
         /// <summary>
-        /// Current point int he bute buffer to use for new data
+        ///     Current point int he bute buffer to use for new data
         /// </summary>
         protected int _ByteBufferCount;
+
         /// <summary>
-        /// The TCP socket the client is connected on
+        ///     The TCP socket the client is connected on
         /// </summary>
         protected TcpClient _ClientSocket = new TcpClient();
+
         /// <summary>
-        /// Bool identifing if the client is currently connected or not
+        ///     Bool identifing if the client is currently connected or not
         /// </summary>
         protected bool _Connected;
+
         /// <summary>
-        /// Set true in the event of an error
+        ///     Set true in the event of an error
         /// </summary>
         protected bool _Error;
+
         /// <summary>
-        /// Last internal error message
+        ///     Last internal error message
         /// </summary>
         protected string _ErrorMessage;
 
         /// <summary>
-        /// The interval in MS packets are checked for
+        ///     The interval in MS packets are checked for
         /// </summary>
         protected int _PacketCheckInterval = 6;
+
         /// <summary>
-        /// The thread used for handeling packets
+        ///     The thread used for handeling packets
         /// </summary>
         protected Thread _PacketHandel;
-        /// <summary>
-        /// Queue containing un processed packets
-        /// </summary>
-        protected readonly Queue<Packet> _PacketsToProcess = new Queue<Packet>();
-        /// <summary>
-        ///
-        /// List of packets that have yet to be sent
-        /// </summary>
-        protected readonly List<Packet> _PacketsToSend = new List<Packet>();
-        /// <summary>
-        /// The buffer size allocated to this client
-        /// </summary>
-        protected int _BufferSize;
 
         /// <summary>
         ///     Initialise a connection to the speicified adress and port
@@ -112,7 +121,8 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        ///     Changes the number of milliseconds between packet checks (this shouldnt be higer then 8ms for timely responces, or lower then 3ms to repvent high cpu usage
+        ///     Changes the number of milliseconds between packet checks (this shouldnt be higer then 8ms for timely responces, or
+        ///     lower then 3ms to repvent high cpu usage
         /// </summary>
         /// <param name="timeBetweenChecksInMs"> Number of ms between checks </param>
         public void SetPacketCheckInterval(int timeBetweenChecksInMs)
@@ -141,8 +151,8 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        /// Injects packets into the process list as though they had been recieved over the network, great for debugging
-        /// and for local server/client combo's
+        ///     Injects packets into the process list as though they had been recieved over the network, great for debugging
+        ///     and for local server/client combo's
         /// </summary>
         /// <param name="p">The packet to inject</param>
         public void InjectToPacketsToProcess(Packet p)
@@ -154,7 +164,7 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        /// Retruns an int containing the number of waiting prackets
+        ///     Retruns an int containing the number of waiting prackets
         /// </summary>
         /// <returns> </returns>
         public int GetPacketsToProcessCount()
@@ -163,7 +173,7 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        /// Retruns an int containing the number of packets that have not yet been sent
+        ///     Retruns an int containing the number of packets that have not yet been sent
         /// </summary>
         /// <returns> </returns>
         public int GetPacketsToSendCount()
@@ -319,7 +329,7 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        /// Returns true if an internal error has occured. This can be retrived with GetError.
+        ///     Returns true if an internal error has occured. This can be retrived with GetError.
         /// </summary>
         /// <returns></returns>
         public bool HasErrored()
@@ -328,7 +338,7 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        /// Returns the message string of the last error and resets the has error to false
+        ///     Returns the message string of the last error and resets the has error to false
         /// </summary>
         /// <returns></returns>
         public string GetError()
@@ -338,7 +348,8 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        /// Retruns the internal TCP socket used by this client. Lock the TCPClient when in use to maintain thread safe operations
+        ///     Retruns the internal TCP socket used by this client. Lock the TCPClient when in use to maintain thread safe
+        ///     operations
         /// </summary>
         /// <returns></returns>
         public TcpClient GetInternalSocket()
@@ -347,10 +358,10 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        /// Gets the size of the internal buffer array that stores incoming but unhandled packets.
+        ///     Gets the size of the internal buffer array that stores incoming but unhandled packets.
         /// </summary>
         /// <returns>
-        /// The internal buffer size in bytes.
+        ///     The internal buffer size in bytes.
         /// </returns>
         public int GetInternalBufferSize()
         {
