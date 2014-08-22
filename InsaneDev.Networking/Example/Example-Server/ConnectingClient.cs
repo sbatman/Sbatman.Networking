@@ -40,6 +40,10 @@ namespace Example_Server
                     case 10:
                         Program.Write(((long)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));
                         break;
+                    case 11:
+                        Program.Write(((bool)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));
+                        Program.Write(((string)packet.GetObjects()[1]).ToString(CultureInfo.InvariantCulture));
+                        break;
                 }
             }
         }

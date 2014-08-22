@@ -13,9 +13,15 @@ namespace Example_Client
             client.Connect("127.0.0.1", 6789);//Connect to the server using the ip and port provided
             while (client.IsConnected())//Whilst we are connected to the server
             {
-                Packet p = new Packet(10);//Create an empty packet of type 10
-                p.AddLong(DateTime.Now.Ticks);//Add to the packet a long, in this case the current time in Ticks
-                client.SendPacket(p);//Send the packet over the connection (packet auto disposes when sent)
+                Packet p1 = new Packet(10);//Create an empty packet of type 10
+                p1.AddLong(DateTime.Now.Ticks);//Add to the packet a long, in this case the current time in Ticks
+                client.SendPacket(p1);//Send the packet over the connection (packet auto disposes when sent)
+
+                Packet p2 = new Packet(11);//Create an empty packet of type 10
+                p2.AddBool(true);//Add to the packet a long, in this case the current time in Ticks
+                p2.AddString("test cake");//Add to the packet a long, in this case the current time in Ticks
+                client.SendPacket(p2);//Send the packet over the connection (packet auto disposes when sent)
+
                 Thread.Sleep(20);//Wait for 20 ms before repeating
             }
         }
