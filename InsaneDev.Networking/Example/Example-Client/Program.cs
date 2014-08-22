@@ -9,7 +9,7 @@ namespace Example_Client
     {
         static void Main()
         {
-            Base client = new Base();//Create an instance of the client used to connect to the server
+            BaseClient client = new BaseClient();//Create an instance of the client used to connect to the server
             client.Connect("127.0.0.1", 6789);//Connect to the server using the ip and port provided
             while (client.IsConnected())//Whilst we are connected to the server
             {

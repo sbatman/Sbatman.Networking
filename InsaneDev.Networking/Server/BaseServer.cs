@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace InsaneDev.Networking.Server
 {
-    public class Base
+    public class BaseServer
     {
         /// <summary>
         /// The underlying TCP listener class

@@ -13,7 +13,7 @@ namespace InsaneDev.Networking.Client
     /// <summary>
     /// A Base class of a client connection. This can be used to connect to the specified server. All message handeling is performed ASynchronously
     /// </summary>
-    public class Base
+    public class BaseClient
     {
         /// <summary>
         /// Buffer of butes used to collect incomming packets and putt hem together
