@@ -10,7 +10,7 @@ namespace Example_Server
         private static readonly object _LockingObject = new object();
         static void Main()
         {
-            Base server = new Base();//Create an instance of the server
+            BaseServer server = new BaseServer();//Create an instance of the server
 
             //Prepare to Listen for connections on port 6789 arriving on all addresses belogning to this machine,
             //If there is a connection accept it and create a new instance of ConnectedClient to pass it to.

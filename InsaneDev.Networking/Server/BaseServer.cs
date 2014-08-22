@@ -11,40 +11,47 @@ using System.Threading;
 
 namespace InsaneDev.Networking.Server
 {
-    public class Base
+    public class BaseServer
     {
         /// <summary>
-        /// The underlying TCP listener class
-        /// </summary>
-        protected TcpListener _TcpListener;
-        /// <summary>
-        /// The thread that the connection listening logic is running on
-        /// </summary>
-        protected Thread _ListeningThread;
-        /// <summary>
-        /// The thread that is used to keep the internal update of the server functioning
-        /// </summary>
-        protected Thread _UpdateThread;
-        /// <summary>
-        /// Bool representing whether the server is listening or not
-        /// </summary>
-        protected bool _Listening;
-        /// <summary>
-        /// Bool representing whether the server is running or not
-        /// </summary>
-        protected bool _Running;
-        /// <summary>
-        /// A list of currently connected clients
-        /// </summary>
-        protected List<ClientConnection> _CurrentlyConnectedClients;
-        /// <summary>
-        /// The endpoint onwhich the server is reacting to connection requests
-        /// </summary>
-        protected IPEndPoint _TCPLocalEndPoint;
-        /// <summary>
-        /// The type used to generate a clientconnection instance
+        ///     The type used to generate a clientconnection instance
         /// </summary>
         protected Type _ClientType;
+
+        /// <summary>
+        ///     A list of currently connected clients
+        /// </summary>
+        protected List<ClientConnection> _CurrentlyConnectedClients;
+
+        /// <summary>
+        ///     Bool representing whether the server is listening or not
+        /// </summary>
+        protected bool _Listening;
+
+        /// <summary>
+        ///     The thread that the connection listening logic is running on
+        /// </summary>
+        protected Thread _ListeningThread;
+
+        /// <summary>
+        ///     Bool representing whether the server is running or not
+        /// </summary>
+        protected bool _Running;
+
+        /// <summary>
+        ///     The endpoint onwhich the server is reacting to connection requests
+        /// </summary>
+        protected IPEndPoint _TCPLocalEndPoint;
+
+        /// <summary>
+        ///     The underlying TCP listener class
+        /// </summary>
+        protected TcpListener _TcpListener;
+
+        /// <summary>
+        ///     The thread that is used to keep the internal update of the server functioning
+        /// </summary>
+        protected Thread _UpdateThread;
 
         /// <summary>
         ///     Required to initalise the Server system
@@ -76,7 +83,7 @@ namespace InsaneDev.Networking.Server
         }
 
         /// <summary>
-        /// When started this logic listens for and reacts to incoming connection requests
+        ///     When started this logic listens for and reacts to incoming connection requests
         /// </summary>
         private void ListenLoop()
         {
@@ -93,7 +100,7 @@ namespace InsaneDev.Networking.Server
         }
 
         /// <summary>
-        /// This Handels the new connections
+        ///     This Handels the new connections
         /// </summary>
         /// <param name="newSocket">The socket the connectionw as made on</param>
         private void HandelNewConnection(TcpClient newSocket)
@@ -101,7 +108,7 @@ namespace InsaneDev.Networking.Server
             newSocket.NoDelay = true;
             lock (_CurrentlyConnectedClients)
             {
-                _CurrentlyConnectedClients.Add((ClientConnection)Activator.CreateInstance(_ClientType, new object[] { newSocket }));
+                _CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(_ClientType, new object[] {newSocket}));
                 if (!_Running)
                 {
                     _Running = true;
@@ -112,7 +119,7 @@ namespace InsaneDev.Networking.Server
         }
 
         /// <summary>
-        /// Sends a packet to all connected clients and then disposes of the packet
+        ///     Sends a packet to all connected clients and then disposes of the packet
         /// </summary>
         /// <param name="p">The packet to send, Withh dispose once sent</param>
         public void SendToAll(Packet p)
@@ -131,7 +138,7 @@ namespace InsaneDev.Networking.Server
         }
 
         /// <summary>
-        /// The internal update loop of the server
+        ///     The internal update loop of the server
         /// </summary>
         private void UpdateLoop()
         {
