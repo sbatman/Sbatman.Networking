@@ -10,6 +10,10 @@ using System.Text;
 
 namespace InsaneDev.Networking
 {
+    /// <summary>
+    /// The Packet class is a light class that is used for serialising and deserialising data into and from the network stream.
+    /// This allows easy passing over variables over the network and guarantees order.
+    /// </summary>
     public class Packet : IDisposable
     {
         /// <summary>
@@ -79,9 +83,10 @@ namespace InsaneDev.Networking
         /// Creates a deep copy of this packet
         /// </summary>
         /// <returns></returns>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public Packet Copy()
         {
-            if(_Disposed) throw new ObjectDisposedException(ToString());
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             Packet p = new Packet(Type)
             {
                 _Data = new byte[_Data.Length]
@@ -98,6 +103,7 @@ namespace InsaneDev.Networking
         /// Adds a double to the packet
         /// </summary>
         /// <param name="d">double to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public void AddDouble(Double d)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -113,6 +119,7 @@ namespace InsaneDev.Networking
         /// Adds a byte array to the packet
         /// </summary>
         /// <param name="byteArray">The bytearray to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public void AddBytePacket(byte[] byteArray)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -132,6 +139,7 @@ namespace InsaneDev.Networking
         /// Adds a byte array to the packet Compressed
         /// </summary>
         /// <param name="byteArray">The bytearray to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public void AddBytePacketCompressed(byte[] byteArray)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -152,6 +160,7 @@ namespace InsaneDev.Networking
         /// Adds a float to the packet
         /// </summary>
         /// <param name="f">The float to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public void AddFloat(float f)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -167,6 +176,7 @@ namespace InsaneDev.Networking
         /// Adds a boolean to the packet
         /// </summary>
         /// <param name="b">The bool to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public void AddBool(bool b)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -182,6 +192,7 @@ namespace InsaneDev.Networking
         /// Adds a long to the packet
         /// </summary>
         /// <param name="l">The long to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public void AddLong(long l)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -197,6 +208,7 @@ namespace InsaneDev.Networking
         /// Adds an int32 to the packet
         /// </summary>
         /// <param name="i">The int 32 to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public void AddInt(Int32 i)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -212,6 +224,7 @@ namespace InsaneDev.Networking
         /// Adds an int64 to the packet
         /// </summary>
         /// <param name="i">The int64 to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public void AddULong(UInt64 i)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -227,6 +240,7 @@ namespace InsaneDev.Networking
         /// Adds an Int16 to the packet
         /// </summary>
         /// <param name="i">The int16 to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public void AddShort(Int16 i)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -242,6 +256,7 @@ namespace InsaneDev.Networking
         /// Adds a Uint32 to the packet
         /// </summary>
         /// <param name="u">The uint32 to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public void AddUInt(UInt32 u)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -257,6 +272,7 @@ namespace InsaneDev.Networking
         /// Adds a UTF8 String to the packet
         /// </summary>
         /// <param name="s">The String to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public void AddString(string s)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -275,7 +291,8 @@ namespace InsaneDev.Networking
         /// <summary>
         /// Converts the back to a bytearray
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A byte array representing the packet</returns>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public byte[] ToByteArray()
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
@@ -293,7 +310,7 @@ namespace InsaneDev.Networking
         /// Converts a byte array to a packet
         /// </summary>
         /// <param name="data">the byte array to convery</param>
-        /// <returns></returns>
+        /// <returns>Returns a packet build from a byte array</returns>
         public static Packet FromByteArray(byte[] data)
         {
             Packet returnPacket = new Packet(BitConverter.ToInt16(data, 10))
@@ -310,15 +327,18 @@ namespace InsaneDev.Networking
         /// <summary>
         /// Returns the list of objects within this packet
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An array of the contained objects</returns>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         public object[] GetObjects()
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             return _PacketObjects.ToArray();
         }
 
         /// <summary>
         /// Ensures the packet bojects array correctly represents the objects that should be within this packet
         /// </summary>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
         protected void UpdateObjects()
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
