@@ -81,6 +81,7 @@ namespace InsaneDev.Networking
         /// <returns></returns>
         public Packet Copy()
         {
+            if(_Disposed) throw new ObjectDisposedException(ToString());
             Packet p = new Packet(Type)
             {
                 _Data = new byte[_Data.Length]
@@ -99,6 +100,7 @@ namespace InsaneDev.Networking
         /// <param name="d">double to add</param>
         public void AddDouble(Double d)
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 9 >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.DOUBLE;
@@ -113,6 +115,7 @@ namespace InsaneDev.Networking
         /// <param name="byteArray">The bytearray to add</param>
         public void AddBytePacket(byte[] byteArray)
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             int size = byteArray.Length;
             while (_DataPos + (size + 5) >= _Data.Length) ExpandDataArray();
@@ -131,6 +134,7 @@ namespace InsaneDev.Networking
         /// <param name="byteArray">The bytearray to add</param>
         public void AddBytePacketCompressed(byte[] byteArray)
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             byteArray = Compress(byteArray);
             _ReturnByteArray = null;
             int size = byteArray.Length;
@@ -150,6 +154,7 @@ namespace InsaneDev.Networking
         /// <param name="f">The float to add</param>
         public void AddFloat(float f)
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 5 >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.FLOAT;
@@ -164,6 +169,7 @@ namespace InsaneDev.Networking
         /// <param name="b">The bool to add</param>
         public void AddBool(bool b)
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 5 >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.BOOL;
@@ -178,6 +184,7 @@ namespace InsaneDev.Networking
         /// <param name="l">The long to add</param>
         public void AddLong(long l)
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 9 >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.LONG;
@@ -192,6 +199,7 @@ namespace InsaneDev.Networking
         /// <param name="i">The int 32 to add</param>
         public void AddInt(Int32 i)
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 5 >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.INT32;
@@ -206,6 +214,7 @@ namespace InsaneDev.Networking
         /// <param name="i">The int64 to add</param>
         public void AddULong(UInt64 i)
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 9 >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.ULONG;
@@ -220,6 +229,7 @@ namespace InsaneDev.Networking
         /// <param name="i">The int16 to add</param>
         public void AddShort(Int16 i)
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 3 >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.SHORT;
@@ -234,6 +244,7 @@ namespace InsaneDev.Networking
         /// <param name="u">The uint32 to add</param>
         public void AddUInt(UInt32 u)
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 5 >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.UINT32;
@@ -248,6 +259,7 @@ namespace InsaneDev.Networking
         /// <param name="s">The String to add</param>
         public void AddString(string s)
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             byte[] byteArray = Encoding.UTF8.GetBytes(s);
             _ReturnByteArray = null;
             int size = byteArray.Length;
@@ -266,6 +278,7 @@ namespace InsaneDev.Networking
         /// <returns></returns>
         public byte[] ToByteArray()
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             if (_ReturnByteArray != null) return _ReturnByteArray;
             _ReturnByteArray = new byte[12 + _DataPos];
             PacketStart.CopyTo(_ReturnByteArray, 0);
@@ -308,6 +321,7 @@ namespace InsaneDev.Networking
         /// </summary>
         protected void UpdateObjects()
         {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
             if (_PacketObjects != null)
             {
                 _PacketObjects.Clear();
