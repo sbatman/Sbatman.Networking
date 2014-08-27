@@ -109,12 +109,10 @@ namespace InsaneDev.Networking.Server
             lock (_CurrentlyConnectedClients)
             {
                 _CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(_ClientType, new object[] {newSocket}));
-                if (!_Running)
-                {
-                    _Running = true;
-                    _UpdateThread = new Thread(UpdateLoop);
-                    _UpdateThread.Start();
-                }
+                if (_Running) return;
+                _Running = true;
+                _UpdateThread = new Thread(UpdateLoop);
+                _UpdateThread.Start();
             }
         }
 

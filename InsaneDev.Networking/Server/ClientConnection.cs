@@ -16,7 +16,7 @@ namespace InsaneDev.Networking.Server
         /// <summary>
         ///     The id of the packet sent when connection is established
         /// </summary>
-        private const int CONNECT_PACKET = 9999;
+        public const int CONNECT_PACKET = 9999;
 
         /// <summary>
         ///     The size in KB of the internal buffer for storing incoming data. Once a Packet
@@ -49,7 +49,7 @@ namespace InsaneDev.Networking.Server
         /// <param name="newSocket"> </param>
         protected ClientConnection(TcpClient newSocket)
         {
-            _ByteBuffer = new byte[INTERNAL_BUFFER_KB*1024];
+            _ByteBuffer = new byte[INTERNAL_BUFFER_KB * 1024];
             _ClientId = GetNewClientId();
             _TimeOfConnection = DateTime.Now;
             _AttachedSocket = newSocket;
@@ -63,7 +63,7 @@ namespace InsaneDev.Networking.Server
         }
 
         /// <summary>
-        ///     Disposes of the client connection, this will cause the buffers to be cleared and any outstanding steams to be
+        ///     Disposes of the client connection, this will cause the buffers to be cleared and any outstanding streams to be
         ///     flushed and closed
         /// </summary>
         public virtual void Dispose()
@@ -110,6 +110,12 @@ namespace InsaneDev.Networking.Server
         ///     This function is called at a regular interval to handel incoming packets
         /// </summary>
         protected abstract void ClientUpdateLogic();
+
+        /// <summary>
+        ///     This function is called whenever this class would throw and exception
+        /// </summary>
+        /// <param name="e">The exception thrown</param>
+        protected abstract void HandelException(Exception e);
 
         /// <summary>
         ///     Send the attached client a packet
@@ -307,7 +313,7 @@ namespace InsaneDev.Networking.Server
             }
             catch (Exception e)
             {
-                Console.WriteLine("Client Exception - " + e);
+                HandelException(e);
             }
         }
 
