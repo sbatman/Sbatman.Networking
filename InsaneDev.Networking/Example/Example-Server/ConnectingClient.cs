@@ -47,5 +47,10 @@ namespace Example_Server
                 }
             }
         }
+
+        protected override void HandelException(System.Exception e)
+        {
+            
+        }
     }
 }
