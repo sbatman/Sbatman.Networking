@@ -27,7 +27,7 @@ namespace InsaneDev.Networking
         ///     as this would possibly cause issues
         ///     with packets with byte transferes within them that happened to contains this sequence.
         /// </summary>
-        public static readonly byte[] PacketStart = {0, 48, 21, 0};
+        public static readonly byte[] PacketStart = { 0, 48, 21, 0 };
 
         /// <summary>
         ///     The type id of the packet
@@ -119,7 +119,7 @@ namespace InsaneDev.Networking
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 9 >= _Data.Length) ExpandDataArray();
-            _Data[_DataPos++] = (byte) ParamTypes.DOUBLE;
+            _Data[_DataPos++] = (byte)ParamTypes.DOUBLE;
             BitConverter.GetBytes(d).CopyTo(_Data, _DataPos);
             _DataPos += 8;
             _ParamCount++;
@@ -136,7 +136,7 @@ namespace InsaneDev.Networking
             _ReturnByteArray = null;
             int size = byteArray.Length;
             while (_DataPos + (size + 5) >= _Data.Length) ExpandDataArray();
-            _Data[_DataPos++] = (byte) ParamTypes.BYTE_PACKET;
+            _Data[_DataPos++] = (byte)ParamTypes.BYTE_PACKET;
             BitConverter.GetBytes(byteArray.Length).CopyTo(_Data, _DataPos);
             _DataPos += 4;
             byteArray.CopyTo(_Data, _DataPos);
@@ -157,7 +157,7 @@ namespace InsaneDev.Networking
             _ReturnByteArray = null;
             int size = byteArray.Length;
             while (_DataPos + (size + 5) >= _Data.Length) ExpandDataArray();
-            _Data[_DataPos++] = (byte) ParamTypes.COMPRESSED_BYTE_PACKET;
+            _Data[_DataPos++] = (byte)ParamTypes.COMPRESSED_BYTE_PACKET;
             BitConverter.GetBytes(byteArray.Length).CopyTo(_Data, _DataPos);
             _DataPos += 4;
             byteArray.CopyTo(_Data, _DataPos);
@@ -176,7 +176,7 @@ namespace InsaneDev.Networking
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 5 >= _Data.Length) ExpandDataArray();
-            _Data[_DataPos++] = (byte) ParamTypes.FLOAT;
+            _Data[_DataPos++] = (byte)ParamTypes.FLOAT;
             BitConverter.GetBytes(f).CopyTo(_Data, _DataPos);
             _DataPos += 4;
             _ParamCount++;
@@ -192,7 +192,7 @@ namespace InsaneDev.Networking
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 5 >= _Data.Length) ExpandDataArray();
-            _Data[_DataPos++] = (byte) ParamTypes.BOOL;
+            _Data[_DataPos++] = (byte)ParamTypes.BOOL;
             BitConverter.GetBytes(b).CopyTo(_Data, _DataPos);
             _DataPos += 1;
             _ParamCount++;
@@ -208,7 +208,7 @@ namespace InsaneDev.Networking
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 9 >= _Data.Length) ExpandDataArray();
-            _Data[_DataPos++] = (byte) ParamTypes.LONG;
+            _Data[_DataPos++] = (byte)ParamTypes.INT64;
             BitConverter.GetBytes(l).CopyTo(_Data, _DataPos);
             _DataPos += 8;
             _ParamCount++;
@@ -224,7 +224,7 @@ namespace InsaneDev.Networking
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 5 >= _Data.Length) ExpandDataArray();
-            _Data[_DataPos++] = (byte) ParamTypes.INT32;
+            _Data[_DataPos++] = (byte)ParamTypes.INT32;
             BitConverter.GetBytes(i).CopyTo(_Data, _DataPos);
             _DataPos += 4;
             _ParamCount++;
@@ -240,7 +240,7 @@ namespace InsaneDev.Networking
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 9 >= _Data.Length) ExpandDataArray();
-            _Data[_DataPos++] = (byte) ParamTypes.ULONG;
+            _Data[_DataPos++] = (byte)ParamTypes.UINT64;
             BitConverter.GetBytes(i).CopyTo(_Data, _DataPos);
             _DataPos += 8;
             _ParamCount++;
@@ -256,7 +256,7 @@ namespace InsaneDev.Networking
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 3 >= _Data.Length) ExpandDataArray();
-            _Data[_DataPos++] = (byte) ParamTypes.SHORT;
+            _Data[_DataPos++] = (byte)ParamTypes.INT16;
             BitConverter.GetBytes(i).CopyTo(_Data, _DataPos);
             _DataPos += 2;
             _ParamCount++;
@@ -272,7 +272,7 @@ namespace InsaneDev.Networking
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 5 >= _Data.Length) ExpandDataArray();
-            _Data[_DataPos++] = (byte) ParamTypes.UINT32;
+            _Data[_DataPos++] = (byte)ParamTypes.UINT32;
             BitConverter.GetBytes(u).CopyTo(_Data, _DataPos);
             _DataPos += 4;
             _ParamCount++;
@@ -290,7 +290,7 @@ namespace InsaneDev.Networking
             _ReturnByteArray = null;
             int size = byteArray.Length;
             while (_DataPos + (size + 5) >= _Data.Length) ExpandDataArray();
-            _Data[_DataPos++] = (byte) ParamTypes.UTF8_STRING;
+            _Data[_DataPos++] = (byte)ParamTypes.UTF8_STRING;
             BitConverter.GetBytes(byteArray.Length).CopyTo(_Data, _DataPos);
             _DataPos += 4;
             byteArray.CopyTo(_Data, _DataPos);
@@ -363,7 +363,7 @@ namespace InsaneDev.Networking
             {
                 for (int x = 0; x < _ParamCount; x++)
                 {
-                    switch ((ParamTypes) _Data[bytepos++])
+                    switch ((ParamTypes)_Data[bytepos++])
                     {
                         case ParamTypes.DOUBLE:
                             _PacketObjects.Add(BitConverter.ToDouble(_Data, bytepos));
@@ -381,7 +381,7 @@ namespace InsaneDev.Networking
                             _PacketObjects.Add(BitConverter.ToBoolean(_Data, bytepos));
                             bytepos += 1;
                             break;
-                        case ParamTypes.LONG:
+                        case ParamTypes.INT64:
                             _PacketObjects.Add(BitConverter.ToInt64(_Data, bytepos));
                             bytepos += 8;
                             break;
@@ -396,11 +396,11 @@ namespace InsaneDev.Networking
                             _PacketObjects.Add(BitConverter.ToUInt32(_Data, bytepos));
                             bytepos += 4;
                             break;
-                        case ParamTypes.ULONG:
+                        case ParamTypes.UINT64:
                             _PacketObjects.Add(BitConverter.ToUInt64(_Data, bytepos));
                             bytepos += 8;
                             break;
-                        case ParamTypes.SHORT:
+                        case ParamTypes.INT16:
                             _PacketObjects.Add(BitConverter.ToInt16(_Data, bytepos));
                             bytepos += 2;
                             break;
@@ -433,7 +433,7 @@ namespace InsaneDev.Networking
         protected void ExpandDataArray()
         {
             _ReturnByteArray = null;
-            byte[] newData = new byte[_Data.Length*2];
+            byte[] newData = new byte[_Data.Length * 2];
             _Data.CopyTo(newData, 0);
             _Data = newData;
         }
@@ -479,17 +479,18 @@ namespace InsaneDev.Networking
         /// </summary>
         protected enum ParamTypes
         {
-            DOUBLE,
             FLOAT,
+            DOUBLE,
+            INT16,
+            UINT16,
             INT32,
+            UINT32,
+            INT64,
+            UINT64,
             BOOL,
             BYTE_PACKET,
-            LONG,
-            UINT32,
-            ULONG,
-            SHORT,
-            COMPRESSED_BYTE_PACKET,
             UTF8_STRING,
+            COMPRESSED_BYTE_PACKET,
         };
     }
 }
