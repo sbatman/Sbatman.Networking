@@ -16,8 +16,12 @@ int _tmain(int argc, _TCHAR* argv [])
 			p->AddDouble(14.6);
 			p->AddInt32(14);
 		}
+		uint8_t* data;
+		int datasize = p->ToByteArray(&data);
+
 		delete p;
 	}
+
 	return 0;
 }
 

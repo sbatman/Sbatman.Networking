@@ -22,4 +22,4 @@ Versioning
 Versioning is maintained by Steven Batchelor-Manning with the format a.b.c
 a - is incremented to mark the completion of a significent update phase
 b - is incremented to mark the merging of development into master
-c - is incremended to mark a hotfix to master (and as such not often used)
+c - time marker of build
