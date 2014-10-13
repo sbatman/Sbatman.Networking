@@ -33,11 +33,8 @@ bool BaseClient::Connect(std::string serverAddress, uint32_t port, int bufferSiz
 		return 1;
 	}
 	SOCKET ConnectSocket = INVALID_SOCKET;
-	// Attempt to connect to the first address returned by
-	// the call to getaddrinfo
 	ptr = result;
 
-	// Create a SOCKET for connecting to server
 	ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype,
 		ptr->ai_protocol);
 	if (ConnectSocket == INVALID_SOCKET) {
@@ -47,14 +44,14 @@ bool BaseClient::Connect(std::string serverAddress, uint32_t port, int bufferSiz
 		return 1;
 	}
 
-	iResult = connect(ConnectSocket, ptr->ai_addr, (int) ptr->ai_addrlen);
+	iResult = connect(ConnectSocket, ptr->ai_addr, static_cast<int>(ptr->ai_addrlen));
 	if (iResult == SOCKET_ERROR) {
 		closesocket(ConnectSocket);
 		ConnectSocket = INVALID_SOCKET;
 	}
 
 	char *sendbuf = "this is a test";
-	iResult = send(ConnectSocket, sendbuf, (int) strlen(sendbuf), 0);
+	iResult = send(ConnectSocket, sendbuf, static_cast<int>(strlen(sendbuf)), 0);
 	if (iResult == SOCKET_ERROR) {
 		printf("send failed: %d\n", WSAGetLastError());
 		closesocket(ConnectSocket);
