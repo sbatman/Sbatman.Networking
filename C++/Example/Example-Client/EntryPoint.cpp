@@ -18,8 +18,9 @@ int _tmain(int argc, _TCHAR* argv [])
 		}
 		uint8_t* data;
 		int datasize = p->ToByteArray(&data);
-
+		Packet * d = Packet::FromByteArray(data);
 		delete p;
+		delete d;
 	}
 
 	return 0;

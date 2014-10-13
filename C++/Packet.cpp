@@ -71,6 +71,23 @@ const uint32_t Packet::ToByteArray(uint8_t ** dataPointer)
 	return _ReturnByteArraySize;
 }
 
+Packet * Packet::FromByteArray(const uint8_t* data)
+{
+	Packet * p = new Packet();	
+	memcpy_s(&p->_ParamCount, sizeof(p->_ParamCount), data + 4, sizeof(uint16_t));
+	memcpy_s(&p->_DataArraySize, sizeof(p->_DataArraySize), data + 6, sizeof(uint32_t));
+	memcpy_s(&p->_Type, sizeof(p->_Type), data + 10, sizeof(uint16_t));
+	p->_DataArraySize -= PACKET_HEADER_LENGTH;
+	p->_Data = new uint8_t[p->_DataArraySize];
+	memcpy_s(p->_Data, p->_DataArraySize, (data + 12), p->_DataArraySize);
+	p->_DataPos = p->_DataArraySize;
+	return p;
+}
+
+Packet::Packet()
+{
+}
+
 void Packet::DestroyReturnByteArray()
 {
 	if (_ReturnByteArray != nullptr)

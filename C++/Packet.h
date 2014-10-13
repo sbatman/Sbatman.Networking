@@ -38,6 +38,8 @@ public:
 
 	const uint32_t ToByteArray(uint8_t ** dataPointer);
 
+	static Packet * FromByteArray(const uint8_t * data);
+
 protected:
 	uint8_t * _Data = nullptr;
 	uint32_t _DataArraySize = 0;
@@ -48,6 +50,7 @@ protected:
 	uint32_t _ReturnByteArraySize = 0;
 
 private:
+	Packet();
 	uint16_t _Type;
 	void DestroyReturnByteArray();
 	void ExpandDataArray();
