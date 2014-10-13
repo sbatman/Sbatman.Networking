@@ -37,6 +37,7 @@ public:
 	void AddUint64(const uint64_t value);
 
 	const uint32_t ToByteArray(uint8_t ** dataPointer);
+	std::vector<void *> GetObjects() const;
 
 	static Packet * FromByteArray(const uint8_t * data);
 
@@ -55,6 +56,9 @@ private:
 	void DestroyReturnByteArray();
 	void ExpandDataArray();
 	template <typename T>
+	T * GetDataFromArray(int offset);
+	template <typename T>
 	void AddToDataArray(ParamTypes type, int32_t dataAmmount, T const*  dataPosition);
+	void UpdateObjects();
 };
 
