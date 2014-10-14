@@ -36,7 +36,7 @@ namespace InsaneDev.Networking.Client
         protected byte[] _ByteBuffer;
 
         /// <summary>
-        ///     Current point int he bute buffer to use for new data
+        ///     Current point in the byte buffer to use for new data
         /// </summary>
         protected int _ByteBufferCount;
 
@@ -63,7 +63,7 @@ namespace InsaneDev.Networking.Client
         /// <summary>
         ///     The interval in MS packets are checked for
         /// </summary>
-        protected int _PacketCheckInterval = 6;
+        protected int _PacketCheckInterval = 2;
 
         /// <summary>
         ///     The thread used for handeling packets
@@ -94,6 +94,7 @@ namespace InsaneDev.Networking.Client
                 if (_ClientSocket == null)
                 {
                     _ClientSocket = new TcpClient(serverAddress, port);
+                    _ClientSocket.NoDelay = true;
                 }
                 else
                 {
@@ -121,14 +122,34 @@ namespace InsaneDev.Networking.Client
         }
 
         /// <summary>
-        ///     Changes the number of milliseconds between packet checks (this shouldnt be higer then 8ms for timely responces, or
-        ///     lower then 3ms to repvent high cpu usage
+        ///     Changes the number of milliseconds between packet checks (this shouldnt be higer then 4ms for timely responces, or
+        ///     lower then 1ms to prevent high cpu usage
         /// </summary>
         /// <param name="timeBetweenChecksInMs"> Number of ms between checks </param>
         public void SetPacketCheckInterval(int timeBetweenChecksInMs)
         {
             if (timeBetweenChecksInMs <= 0) timeBetweenChecksInMs = 1;
             _PacketCheckInterval = timeBetweenChecksInMs;
+        }
+
+        /// <summary>
+        /// Returns a bool representing whether no delay has been foced to true. This disables an underlying packet bunching logic
+        /// decreasing avaliable bandwidth in exchange for quicker response times.
+        /// </summary>
+        /// <returns></returns>
+        public bool GetForceNoDelay()
+        {
+            return _ClientSocket.NoDelay;
+        }
+
+        /// <summary>
+        /// sets whether no delay has been foced to true. This disables an underlying packet bunching logic
+        /// decreasing avaliable bandwidth in exchange for quicker response times. Default = true
+        /// </summary>
+        /// <param name="setting">True for speed over bandwidth, false for bandwidth over speed</param>
+        public void SetForceNoDelay(bool setting)
+        {
+            _ClientSocket.NoDelay = setting;
         }
 
         /// <summary>
