@@ -39,6 +39,7 @@ namespace Example_Server
                 {
                     case 10:
                         Program.Write(((long)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));
+                        SendPacket(new Packet(45));
                         break;
                     case 11:
                         Program.Write(((bool)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));

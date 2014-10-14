@@ -14,7 +14,7 @@ namespace Example_Client
             while (client.IsConnected())//Whilst we are connected to the server
             {
                 Packet p1 = new Packet(10);//Create an empty packet of type 10
-                p1.AddLong(DateTime.Now.Ticks);//Add to the packet a long, in this case the current time in Ticks
+                p1.AddInt64(DateTime.Now.Ticks);//Add to the packet a long, in this case the current time in Ticks
                 client.SendPacket(p1);//Send the packet over the connection (packet auto disposes when sent)
 
                 Packet p2 = new Packet(11);//Create an empty packet of type 10
