@@ -36,7 +36,7 @@ namespace InsaneDev.Networking.Client
         protected byte[] _ByteBuffer;
 
         /// <summary>
-        ///     Current point int he bute buffer to use for new data
+        ///     Current point in the byte buffer to use for new data
         /// </summary>
         protected int _ByteBufferCount;
 
@@ -147,7 +147,7 @@ namespace InsaneDev.Networking.Client
         /// decreasing avaliable bandwidth in exchange for quicker response times. Default = true
         /// </summary>
         /// <param name="setting">True for speed over bandwidth, false for bandwidth over speed</param>
-        public void SetForceDelay(bool setting)
+        public void SetForceNoDelay(bool setting)
         {
             _ClientSocket.NoDelay = setting;
         }

@@ -152,5 +152,56 @@ void BaseClient::Update()
 			}
 		}
 
+		_RecBufferPosition+=SocketRead(_RecBuffer + _RecBufferPosition, _RecBufferSize - _RecBufferPosition);
+
+		// Packets
+
+		bool finding = _RecBufferPosition > 11;
+		while (finding)
+		{
+			bool packerstartpresent = true;
+			for (int x = 0; x < 4; x++)
+			{
+				if (_RecBuffer[x] == Insanedev::Networking::Packet::PacketStartBytes[x]) continue;
+				packerstartpresent = false;
+				break;
+			}
+			if (packerstartpresent)
+			{
+				uint32_t size = *(_RecBuffer +6);
+				if (_RecBufferPosition >= size)
+				{
+					Insanedev::Networking::Packet * p = Insanedev::Networking::Packet::FromByteArray(_RecBuffer);
+					memcpy_s(_RecBuffer, _RecBufferSize, _RecBuffer + size, _RecBufferSize - size);
+					_RecBufferPosition -= size;
+
+					printf("%d",p->GetType());
+					delete p;
+				//	if (p != null) _PacketsToProcess.Enqueue(p);
+				}
+				else
+				{
+					finding = false;
+				}
+			}
+			else
+			{
+				int offset = -1;
+				for (int x = 0; x < _RecBufferPosition; x++)
+				{
+					if (_RecBuffer[x] == Insanedev::Networking::Packet::PacketStartBytes[x]) offset = x;
+				}
+				if (offset != -1)
+				{
+					memcpy_s(_RecBuffer, _RecBufferSize, _RecBuffer + offset, _RecBufferSize - offset);
+					_RecBufferPosition -= offset;
+				}
+				else
+				{
+					_RecBufferPosition = 0;
+				}
+			}
+			if (_RecBufferPosition < 12) finding = false;
+		}
 	}
 }

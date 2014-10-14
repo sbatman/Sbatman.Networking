@@ -5,7 +5,7 @@ namespace Insanedev
 {
 	namespace Networking
 	{
-		static const uint8_t PacketStartBytes[4] = { 0, 48, 21, 0 };
+		const uint8_t Packet::PacketStartBytes[4] = { 0, 48, 21, 0 };
 		static const uint32_t INITIAL_DATA_SIZE = 128;
 		static const uint32_t PACKET_HEADER_LENGTH = 12;
 
@@ -79,6 +79,11 @@ namespace Insanedev
 		std::vector<void*> Packet::GetObjects() const
 		{
 			return _PackedObjects;
+		}
+
+		uint16_t Packet::GetType() const
+		{
+			return _Type;
 		}
 
 		Packet * Packet::FromByteArray(const uint8_t* data)

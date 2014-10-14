@@ -42,8 +42,11 @@ namespace Insanedev
 
 			const uint32_t ToByteArray(uint8_t ** dataPointer);
 			std::vector<void *> GetObjects() const;
+			uint16_t GetType() const;
 
 			static Packet * FromByteArray(const uint8_t * data);
+			static const uint8_t PacketStartBytes[4];
+
 
 		protected:
 			uint8_t * _Data = nullptr;
