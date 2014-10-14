@@ -14,9 +14,14 @@ public:
 	bool Connect(string serverAddress, uint32_t port, uint32_t recBufferSize = 50000);
 	void SendPacket(Packet* packet);
 	vector<Packet*> * GetPacketsToProcess();
+	uint32_t GetPacketsToProcessCount();
+	uint32_t GetPacketsToSendCount();
+	bool IsConnected() const;
 
 	void SetForceNoDelay(bool state);
 	bool GetFoceNoDelay() const;
+
+	void Disconnect();
 
 private:
 

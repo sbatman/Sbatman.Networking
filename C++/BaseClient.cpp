@@ -11,13 +11,21 @@ BaseClient::BaseClient()
 
 BaseClient::~BaseClient()
 {
-	delete [] _RecBuffer;
+	delete[] _RecBuffer;
+	if (_InternalConnectSocket != INVALID_SOCKET) SocketClose();
+	_Connected = false;
+	_PacketHandel->join();
+	delete _PacketHandel;
+	for (Packet * packet : _PacketsToSend) delete packet;
+	for (Packet * packet : _PacketsToProcess) delete packet;
 }
 
 bool BaseClient::Connect(string serverAddress, uint32_t port, uint32_t recBufferSize)
 {
 	{
 		lock_guard<mutex> lock(_SocketLock);
+
+		_ASSERT(_InternalConnectSocket == INVALID_SOCKET);
 
 		//setup recieve buffer
 		_RecBufferSize = recBufferSize;
@@ -36,7 +44,7 @@ bool BaseClient::Connect(string serverAddress, uint32_t port, uint32_t recBuffer
 
 		WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-		int32_t iResult = getaddrinfo(serverAddress.c_str(), std::to_string(port).c_str(), &hints, &result);
+		int32_t iResult = getaddrinfo(serverAddress.c_str(), to_string(port).c_str(), &hints, &result);
 		if (iResult != 0)
 		{
 			printf("getaddrinfo failed: %d\n", iResult);
@@ -65,6 +73,7 @@ bool BaseClient::Connect(string serverAddress, uint32_t port, uint32_t recBuffer
 
 		_Connected = true;
 		_PacketHandel = new thread(&BaseClient::Update, this);
+
 
 
 		return true;
@@ -96,12 +105,41 @@ vector<Packet*>* BaseClient::GetPacketsToProcess()
 	return returnList;
 }
 
+uint32_t BaseClient::GetPacketsToProcessCount()
+{
+	{
+		lock_guard<mutex> lock(_ProcessPacketListLock);
+		return _PacketsToProcess.size();
+	}
+}
+
+uint32_t BaseClient::GetPacketsToSendCount()
+{
+	{
+		lock_guard<mutex> lock(_PacketListLock);
+		return _PacketsToSend.size();
+	}
+}
+
+bool BaseClient::IsConnected() const
+{
+	return _Connected;
+}
+
 bool BaseClient::GetFoceNoDelay() const
 {
 	bool flag;
 	int len;
 	getsockopt(_InternalConnectSocket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&flag), &len);
 	return flag;
+}
+
+void BaseClient::Disconnect()
+{
+	{
+		lock_guard<mutex> lock(_SocketLock);
+		SocketClose();
+	}
 }
 
 void BaseClient::SetForceNoDelay(bool state)
