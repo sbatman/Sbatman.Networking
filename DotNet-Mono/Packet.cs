@@ -109,6 +109,7 @@ namespace InsaneDev.Networking
             return p;
         }
 
+
         /// <summary>
         ///     Adds a double to the packet
         /// </summary>
@@ -203,7 +204,7 @@ namespace InsaneDev.Networking
         /// </summary>
         /// <param name="l">The long to add</param>
         /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
-        public void AddLong(long l)
+        public void AddInt64(Int64 l)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
@@ -219,7 +220,7 @@ namespace InsaneDev.Networking
         /// </summary>
         /// <param name="i">The int 32 to add</param>
         /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
-        public void AddInt(Int32 i)
+        public void AddInt32(Int32 i)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
@@ -235,7 +236,7 @@ namespace InsaneDev.Networking
         /// </summary>
         /// <param name="i">The int64 to add</param>
         /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
-        public void AddULong(UInt64 i)
+        public void AddUInt64(UInt64 i)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
@@ -251,12 +252,27 @@ namespace InsaneDev.Networking
         /// </summary>
         /// <param name="i">The int16 to add</param>
         /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
-        public void AddShort(Int16 i)
+        public void AddInt16(Int16 i)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
             while (_DataPos + 3 >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.INT16;
+            BitConverter.GetBytes(i).CopyTo(_Data, _DataPos);
+            _DataPos += 2;
+            _ParamCount++;
+        }
+        /// <summary>
+        ///     Adds an Int16 to the packet
+        /// </summary>
+        /// <param name="i">The int16 to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
+        public void AddUInt16(UInt16 i)
+        {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
+            _ReturnByteArray = null;
+            while (_DataPos + 3 >= _Data.Length) ExpandDataArray();
+            _Data[_DataPos++] = (byte)ParamTypes.UINT16;
             BitConverter.GetBytes(i).CopyTo(_Data, _DataPos);
             _DataPos += 2;
             _ParamCount++;
@@ -267,7 +283,7 @@ namespace InsaneDev.Networking
         /// </summary>
         /// <param name="u">The uint32 to add</param>
         /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
-        public void AddUInt(UInt32 u)
+        public void AddUInt32(UInt32 u)
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;

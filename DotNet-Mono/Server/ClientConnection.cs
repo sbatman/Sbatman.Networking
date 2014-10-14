@@ -55,7 +55,7 @@ namespace InsaneDev.Networking.Server
             _AttachedSocket = newSocket;
             _Connected = true;
             Packet p = new Packet(CONNECT_PACKET);
-            p.AddInt(_ClientId);
+            p.AddInt32(_ClientId);
             _PacketsToSend.Add(p);
             OnConnect();
             _UpdateThread = new Thread(Update);
