@@ -14,10 +14,10 @@ BaseClient::~BaseClient()
 	delete [] _RecBuffer;
 }
 
-bool BaseClient::Connect(std::string serverAddress, uint32_t port, uint32_t recBufferSize)
+bool BaseClient::Connect(string serverAddress, uint32_t port, uint32_t recBufferSize)
 {
 	{
-		std::lock_guard<std::mutex> lock(_SocketLock);
+		lock_guard<mutex> lock(_SocketLock);
 
 		//setup recieve buffer
 		_RecBufferSize = recBufferSize;
@@ -64,19 +64,36 @@ bool BaseClient::Connect(std::string serverAddress, uint32_t port, uint32_t recB
 		SetForceNoDelay(true);
 
 		_Connected = true;
-		_PacketHandel = new std::thread(&BaseClient::Update, this);
+		_PacketHandel = new thread(&BaseClient::Update, this);
 
 
 		return true;
 	}
 }
 
-void BaseClient::SendPacket(Insanedev::Networking::Packet* packet)
+void BaseClient::SendPacket(Packet* packet)
 {
 	{
-		std::lock_guard<std::mutex> lock(_PacketListLock);
+		lock_guard<mutex> lock(_PacketListLock);
 		_PacketsToSend.push_back(packet);
 	}
+}
+
+vector<Packet*>* BaseClient::GetPacketsToProcess()
+{
+	vector<Packet*> * returnList = new vector<Packet*>();
+
+	{
+		lock_guard<mutex> lock(_ProcessPacketListLock);
+
+		if (_PacketsToProcess.size() == 0) return nullptr;
+
+		for (Packet * p : _PacketsToProcess) returnList->push_back(p);
+
+		_PacketsToProcess.clear();
+
+	}
+	return returnList;
 }
 
 bool BaseClient::GetFoceNoDelay() const
@@ -105,7 +122,12 @@ bool BaseClient::SocketWrite(const uint8_t * data, uint32_t length)
 
 int BaseClient::SocketRead(uint8_t* data, uint32_t max)
 {
-	return recv(_InternalConnectSocket, reinterpret_cast<char*>(data), max, 0);
+	u_long iMode = 1;
+	ioctlsocket(_InternalConnectSocket, FIONBIO, &iMode);
+	int bytes = recv(_InternalConnectSocket, reinterpret_cast<char*>(data), max, 0);
+	iMode = 0;
+	ioctlsocket(_InternalConnectSocket, FIONBIO, &iMode);
+	return bytes < 0 ? 0 : bytes;
 }
 
 void BaseClient::SocketClose()
@@ -121,12 +143,12 @@ void BaseClient::Update()
 	{
 		//Sending packets
 
-		std::vector<Insanedev::Networking::Packet*> _tempList;
+		vector<Packet*> _tempList;
 
 		{
-			std::lock_guard<std::mutex> lock(_PacketListLock);
+			lock_guard<mutex> lock(_PacketListLock);
 
-			for (Insanedev::Networking::Packet* p : _PacketsToSend)
+			for (Packet* p : _PacketsToSend)
 			{
 				_tempList.push_back(p);
 			}
@@ -136,9 +158,9 @@ void BaseClient::Update()
 		if (_tempList.size() > 0)
 		{
 			{
-				std::lock_guard<std::mutex> lock(_SocketLock);
+				lock_guard<mutex> lock(_SocketLock);
 
-				for (Insanedev::Networking::Packet* p : _tempList)
+				for (Packet* p : _tempList)
 				{
 					uint8_t * data;
 					int length = p->ToByteArray(&data);
@@ -152,7 +174,7 @@ void BaseClient::Update()
 			}
 		}
 
-		_RecBufferPosition+=SocketRead(_RecBuffer + _RecBufferPosition, _RecBufferSize - _RecBufferPosition);
+		_RecBufferPosition += SocketRead(_RecBuffer + _RecBufferPosition, _RecBufferSize - _RecBufferPosition);
 
 		// Packets
 
@@ -162,22 +184,23 @@ void BaseClient::Update()
 			bool packerstartpresent = true;
 			for (int x = 0; x < 4; x++)
 			{
-				if (_RecBuffer[x] == Insanedev::Networking::Packet::PacketStartBytes[x]) continue;
+				if (_RecBuffer[x] == Packet::PacketStartBytes[x]) continue;
 				packerstartpresent = false;
 				break;
 			}
 			if (packerstartpresent)
 			{
-				uint32_t size = *(_RecBuffer +6);
+				uint32_t size = *(_RecBuffer + 6);
 				if (_RecBufferPosition >= size)
 				{
-					Insanedev::Networking::Packet * p = Insanedev::Networking::Packet::FromByteArray(_RecBuffer);
+					Packet * p = Packet::FromByteArray(_RecBuffer);
 					memcpy_s(_RecBuffer, _RecBufferSize, _RecBuffer + size, _RecBufferSize - size);
 					_RecBufferPosition -= size;
 
-					printf("%d",p->GetType());
-					delete p;
-				//	if (p != null) _PacketsToProcess.Enqueue(p);
+					{
+						lock_guard<mutex> lock(_ProcessPacketListLock);
+						_PacketsToProcess.push_back(p);
+					}
 				}
 				else
 				{
@@ -189,7 +212,7 @@ void BaseClient::Update()
 				int offset = -1;
 				for (int x = 0; x < _RecBufferPosition; x++)
 				{
-					if (_RecBuffer[x] == Insanedev::Networking::Packet::PacketStartBytes[x]) offset = x;
+					if (_RecBuffer[x] == Packet::PacketStartBytes[x]) offset = x;
 				}
 				if (offset != -1)
 				{

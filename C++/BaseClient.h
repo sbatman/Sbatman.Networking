@@ -2,24 +2,32 @@
 #include "stdafx.h"
 #include "Packet.h"
 
+using Insanedev::Networking::Packet;
+using namespace std;
+
 class BaseClient
 {
 public:
 	BaseClient();
 	~BaseClient();
 
-	bool Connect(std::string serverAddress, uint32_t port, uint32_t recBufferSize = 50000);
-	void SendPacket(Insanedev::Networking::Packet* packet);
+	bool Connect(string serverAddress, uint32_t port, uint32_t recBufferSize = 50000);
+	void SendPacket(Packet* packet);
+	vector<Packet*> * GetPacketsToProcess();
+
 	void SetForceNoDelay(bool state);
 	bool GetFoceNoDelay() const;
 
 private:
 
 	SOCKET _InternalConnectSocket = INVALID_SOCKET;
-	std::vector<Insanedev::Networking::Packet*> _PacketsToSend;
-	std::thread * _PacketHandel;
-	std::mutex _PacketListLock;
-	std::mutex _SocketLock;
+	vector<Packet*> _PacketsToSend;
+	vector<Packet*> _PacketsToProcess;
+
+	thread * _PacketHandel;
+	mutex _PacketListLock;
+	mutex _ProcessPacketListLock;
+	mutex _SocketLock;
 
 	bool SocketWrite(const uint8_t * data, uint32_t length);
 	int SocketRead(uint8_t * data, uint32_t max);	

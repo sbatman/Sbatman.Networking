@@ -14,11 +14,27 @@ int _tmain(int argc, _TCHAR* argv [])
 	client->Connect("127.0.0.1", 6789);
 	int64_t i = 0;
 	while (true){
-		Packet* p = new Packet(10);
-		p->AddInt64(i);	
-		client->SendPacket(p);	
-		i++;
 
+		if ((i % 100) != 0)
+		{
+			Packet* p = new Packet(10);
+			p->AddInt64(i);
+			client->SendPacket(p);
+		}
+		else
+		{
+			vector<Packet*> * list = (client->GetPacketsToProcess());
+			if (list != nullptr)
+			{
+				for (Packet * p : *list)
+				{
+					printf("%d", p->GetType());
+					delete p;
+				}
+				delete list;
+			}
+		}
+		i++;
 		Sleep(1);
 	}
 	return 0;
