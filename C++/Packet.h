@@ -12,6 +12,9 @@ namespace Insanedev
 		{
 		public:
 
+     /// <summary>
+     ///     The types that can be added to a packet
+     /// </summary>
 			enum ParamTypes
 			{
 				FLOAT,
@@ -30,21 +33,61 @@ namespace Insanedev
 
 			Packet(uint16_t type);
 			~Packet();
-
+			
+     /// <summary>
+     ///     Adds the float provided to the packet
+     /// </summary>
 			void AddFloat(const float_t value);
+     /// <summary>
+     ///     Adds the double provided to the packet
+     /// </summary>
 			void AddDouble(const double_t value);
+			/// <summary>
+     ///     Adds the int16 provided to the packet
+     /// </summary>
 			void AddInt16(const int16_t value);
+     /// <summary>
+     ///     adds the unsigned int16 ptovided to the packet
+     /// </summary>
 			void AddUint16(const uint16_t value);
+     /// <summary>
+     ///     Adds the int32 ptovided to the packet
+     /// </summary>
 			void AddInt32(const int32_t value);
+     /// <summary>
+     ///     Adds the unsigned int32 ptovided to the packet
+     /// </summary>
 			void AddUint32(const uint32_t value);
-			void AddInt64(const int64_t value);
+     /// <summary>
+     ///     Adds the int64 ptovided to the packet
+     /// </summary>
+			void  AddInt64(const int64_t value);
+     /// <summary>
+     ///     adds the unsigned int64 ptovided to the packet
+     /// </summary>
 			void AddUint64(const uint64_t value);
-
+			
+			/// <summary>
+     ///     Generates a byte arry from the packet returning the length in bytes
+     ///     and populating the pointer provided. The pointer will become invalid
+     ///     id the packet is deleted.
+     /// </summary>
 			const uint32_t ToByteArray(uint8_t ** dataPointer);
+     /// <summary>
+     ///     Retutns a vector containing pointers to all the objects in this packet
+     ///     The pointers will become invalid if this packet is deleted
+     /// </summary>
 			std::vector<void *> GetObjects() const;
+			/// <summary>
+     ///     Returns the type id of this packet
+     /// </summary>
 			uint16_t GetType() const;
-
-			static Packet * FromByteArray(const uint8_t * data);
+			
+     /// <summary>
+     ///    Creates a packet from tje provided byte aray and returns 
+     ///    a pointer to the packet
+     /// </summary>
+     static Packet * FromByteArray(const uint8_t * data);
 			static const uint8_t PacketStartBytes[4];
 
 
