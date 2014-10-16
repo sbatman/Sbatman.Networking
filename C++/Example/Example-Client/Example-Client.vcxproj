@@ -162,7 +162,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Insanedev.Networking.vcxproj">
+    <ProjectReference Include="..\..\Sbatman.Networking.vcxproj">
       <Project>{4ffabbd5-7f23-4f32-829a-353f9736f81d}</Project>
     </ProjectReference>
   </ItemGroup>
