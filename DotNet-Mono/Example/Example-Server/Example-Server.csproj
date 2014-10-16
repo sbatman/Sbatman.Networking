@@ -49,9 +49,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\InsaneDev.Networking.csproj">
+    <ProjectReference Include="..\..\Sbatman.Networking.csproj">
       <Project>{e627bd2d-226a-4061-bd4e-7e86cf56936d}</Project>
-      <Name>InsaneDev.Networking</Name>
+      <Name>Sbatman.Networking</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

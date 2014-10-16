@@ -1,10 +1,10 @@
 ﻿using System.Globalization;
 using System.Net.Sockets;
-using InsaneDev.Networking;
+using Sbatman.Networking;
 
 namespace Example_Server
 {
-    class ConnectingClient : InsaneDev.Networking.Server.ClientConnection
+    class ConnectingClient : Sbatman.Networking.Server.ClientConnection
     {
         /// <summary>
         /// Created by the server when a new client is connecting

@@ -6,7 +6,7 @@
 #include "../../BaseClient.h"
 #include <synchapi.h>
 
-using Insanedev::Networking::Packet;
+using Sbatman::Networking::Packet;
 
 int _tmain(int argc, _TCHAR* argv [])
 {

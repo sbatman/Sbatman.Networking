@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsaneDev.Networking", "InsaneDev.Networking.csproj", "{E627BD2D-226A-4061-BD4E-7E86CF56936D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sbatman.Networking", "Sbatman.Networking.csproj", "{E627BD2D-226A-4061-BD4E-7E86CF56936D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example-Server", "Example\Example-Server\Example-Server.csproj", "{6E56BDF8-E45F-4FB6-B926-B2D75283C452}"
 EndProject

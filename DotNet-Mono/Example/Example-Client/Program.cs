@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
-using InsaneDev.Networking;
-using InsaneDev.Networking.Client;
+using Sbatman.Networking;
+using Sbatman.Networking.Client;
 
 namespace Example_Client
 {
