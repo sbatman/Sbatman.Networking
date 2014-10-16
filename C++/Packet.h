@@ -7,7 +7,10 @@ namespace Insanedev
 {
 	namespace Networking
 	{
-
+		/// <summary>
+		///     The Packet class is a light class that is used for serialising and deserialising data into and from the network
+		///     stream. This allows easy passing over variables over the network and guarantees order.
+		/// </summary>
 		class Packet
 		{
 		public:

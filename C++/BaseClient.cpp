@@ -214,7 +214,7 @@ void BaseClient::Update()
 
 		_RecBufferPosition += SocketRead(_RecBuffer + _RecBufferPosition, _RecBufferSize - _RecBufferPosition);
 
-		// Packets
+		// Recievning Packets
 
 		bool finding = _RecBufferPosition > 11;
 		while (finding)
