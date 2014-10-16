@@ -1,11 +1,11 @@
-InsaneDev.Networking
+Sbatman.Networking
 =======
 
 Description
 --------
-InsaneDev.Networking is a lightweight and easy to use networking abstraction library. Offering easy packet building and handeling.
+Sbatman.Networking is a lightweight and easy to use networking abstraction library. Offering easy packet building and handeling.
 It also offers easy client server connectivity management. It currently offers a .net implementation with a c++ implementation
-in development
+in development (Client side complete)
 
 Team
 --------
