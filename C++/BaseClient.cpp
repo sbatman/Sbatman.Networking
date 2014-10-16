@@ -249,7 +249,7 @@ void BaseClient::Update()
 			else
 			{
 				int offset = -1;
-				for (int x = 0; x < _RecBufferPosition; x++)
+				for (uint32_t x = 0; x < _RecBufferPosition; x++)
 				{
 					if (_RecBuffer[x] == Packet::PacketStartBytes[x]) offset = x;
 				}
