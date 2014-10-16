@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
-using InsaneDev.Networking.Server;
+using Sbatman.Networking.Server;
 
 namespace Example_Server
 {

@@ -2,6 +2,7 @@
 #include "BaseClient.h"
 #include "Packet.h"
 
+using namespace Sbatman::Networking;
 
 BaseClient::BaseClient()
 {
@@ -214,7 +215,7 @@ void BaseClient::Update()
 
 		_RecBufferPosition += SocketRead(_RecBuffer + _RecBufferPosition, _RecBufferSize - _RecBufferPosition);
 
-		// Packets
+		// Recievning Packets
 
 		bool finding = _RecBufferPosition > 11;
 		while (finding)

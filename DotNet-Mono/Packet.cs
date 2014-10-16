@@ -8,7 +8,7 @@ using System.Text;
 
 #endregion
 
-namespace InsaneDev.Networking
+namespace Sbatman.Networking
 {
     /// <summary>
     ///     The Packet class is a light class that is used for serialising and deserialising data into and from the network

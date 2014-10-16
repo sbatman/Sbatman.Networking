@@ -9,7 +9,7 @@ using System.Threading;
 
 #endregion
 
-namespace InsaneDev.Networking.Server
+namespace Sbatman.Networking.Server
 {
     public abstract class ClientConnection : IDisposable
     {
