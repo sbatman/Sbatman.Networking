@@ -2,6 +2,7 @@
 #include "BaseClient.h"
 #include "Packet.h"
 
+using namespace Sbatman::Networking;
 
 BaseClient::BaseClient()
 {

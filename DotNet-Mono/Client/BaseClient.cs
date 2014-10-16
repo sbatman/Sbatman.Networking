@@ -7,7 +7,7 @@ using System.Threading;
 
 #endregion
 
-namespace InsaneDev.Networking.Client
+namespace Sbatman.Networking.Client
 {
     /// <summary>
     ///     A Base class of a client connection. This can be used to connect to the specified server. All message handeling is

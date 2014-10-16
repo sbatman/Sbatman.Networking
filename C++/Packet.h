@@ -3,7 +3,8 @@
 #include <stdbool.h>
 #include <float.h>
 #include <vector>
-namespace Insanedev
+
+namespace Sbatman
 {
 	namespace Networking
 	{
@@ -162,6 +163,5 @@ namespace Insanedev
 			/// </summary>
 			void UpdateObjects();
 		};
-
 	}
 }

@@ -7,8 +7,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{3B6383FF-C58E-4C9E-A9A3-E7522883E606}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>InsaneDev.Networking</RootNamespace>
-    <AssemblyName>InsaneDev.Networking</AssemblyName>
+    <RootNamespace>Sbatman.Networking</RootNamespace>
+    <AssemblyName>Sbatman.Networking</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
