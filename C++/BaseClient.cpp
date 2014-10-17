@@ -27,6 +27,7 @@ bool BaseClient::Connect(string serverAddress, uint32_t port, uint32_t recBuffer
 		lock_guard<mutex> lock(_SocketLock);
 
 		_ASSERT(_InternalConnectSocket == INVALID_SOCKET);
+		_ASSERT(!_Connected);
 
 		//setup recieve buffer
 		_RecBufferSize = recBufferSize;
@@ -83,6 +84,7 @@ bool BaseClient::Connect(string serverAddress, uint32_t port, uint32_t recBuffer
 
 void BaseClient::SendPacket(Packet* packet)
 {
+	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
 	{
 		lock_guard<mutex> lock(_PacketListLock);
 		_PacketsToSend.push_back(packet);
@@ -91,6 +93,7 @@ void BaseClient::SendPacket(Packet* packet)
 
 vector<Packet*>* BaseClient::GetPacketsToProcess()
 {
+	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
 	vector<Packet*> * returnList = new vector<Packet*>();
 
 	{
@@ -108,6 +111,7 @@ vector<Packet*>* BaseClient::GetPacketsToProcess()
 
 uint32_t BaseClient::GetPacketsToProcessCount()
 {
+	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
 	{
 		lock_guard<mutex> lock(_ProcessPacketListLock);
 		return _PacketsToProcess.size();
@@ -116,6 +120,7 @@ uint32_t BaseClient::GetPacketsToProcessCount()
 
 uint32_t BaseClient::GetPacketsToSendCount()
 {
+	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
 	{
 		lock_guard<mutex> lock(_PacketListLock);
 		return _PacketsToSend.size();
@@ -129,6 +134,7 @@ bool BaseClient::IsConnected() const
 
 bool BaseClient::GetFoceNoDelay() const
 {
+	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
 	bool flag;
 	int len;
 	getsockopt(_InternalConnectSocket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&flag), &len);
@@ -145,12 +151,14 @@ void BaseClient::Disconnect()
 
 void BaseClient::SetForceNoDelay(bool state)
 {
+	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
 	bool flag = state;
 	setsockopt(_InternalConnectSocket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&flag), sizeof(bool));
 }
 
 bool BaseClient::SocketWrite(const uint8_t * data, uint32_t length)
 {
+	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
 	int iResult = send(_InternalConnectSocket, reinterpret_cast<const char *>(data), length, 0);
 	if (iResult == SOCKET_ERROR) {
 		SocketClose();
@@ -161,6 +169,7 @@ bool BaseClient::SocketWrite(const uint8_t * data, uint32_t length)
 
 int BaseClient::SocketRead(uint8_t* data, uint32_t max)
 {
+	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
 	u_long iMode = 1;
 	ioctlsocket(_InternalConnectSocket, FIONBIO, &iMode);
 	int bytes = recv(_InternalConnectSocket, reinterpret_cast<char*>(data), max, 0);
@@ -180,6 +189,11 @@ void BaseClient::Update()
 {
 	while (_Connected)
 	{
+		if (_InternalConnectSocket == INVALID_SOCKET)
+		{
+			_Connected = false;
+			return;
+		}
 		//Sending packets
 
 		vector<Packet*> _tempList;

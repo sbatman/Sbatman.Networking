@@ -51,25 +51,29 @@ namespace Sbatman
 			/// </summary>
 			void AddInt16(const int16_t value);
 			/// <summary>
-			///     adds the unsigned int16 ptovided to the packet
+			///     adds the unsigned int16 provided to the packet
 			/// </summary>
 			void AddUint16(const uint16_t value);
 			/// <summary>
-			///     Adds the int32 ptovided to the packet
+			///     Adds the int32 provided to the packet
 			/// </summary>
 			void AddInt32(const int32_t value);
 			/// <summary>
-			///     Adds the unsigned int32 ptovided to the packet
+			///     Adds the unsigned int32 provided to the packet
 			/// </summary>
 			void AddUint32(const uint32_t value);
 			/// <summary>
-			///     Adds the int64 ptovided to the packet
+			///     Adds the int64 provided to the packet
 			/// </summary>
 			void  AddInt64(const int64_t value);
 			/// <summary>
-			///     adds the unsigned int64 ptovided to the packet
+			///     Adds the unsigned int64 provided to the packet
 			/// </summary>
 			void AddUint64(const uint64_t value);
+			/// <summary>
+			///     Adds the boolean provided to the packet
+			/// </summary>
+			void AddBool(const bool value);
 
 			/// <summary>
 			///     Generates a byte arry from the packet returning the length in bytes

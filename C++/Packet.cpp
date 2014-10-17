@@ -58,6 +58,11 @@ void Packet::AddUint64(uint64_t const value)
 	AddToDataArray<uint64_t>(UINT64, sizeof(uint64_t), &value);
 }
 
+void Packet::AddBool(bool const value)
+{
+	AddToDataArray<bool>(BOOL, sizeof(uint64_t), &value);
+}
+
 const uint32_t Packet::ToByteArray(uint8_t ** dataPointer)
 {
 	if (_ReturnByteArray == nullptr)
