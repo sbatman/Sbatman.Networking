@@ -125,7 +125,7 @@ uint32_t BaseClient::GetPacketsToProcessCount()
 	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
 	{
 		lock_guard<mutex> lock(_ProcessPacketListLock);
-		return _PacketsToProcess.size();
+		return static_cast<uint32_t>(_PacketsToProcess.size());
 	}
 }
 
@@ -134,7 +134,7 @@ uint32_t BaseClient::GetPacketsToSendCount()
 	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
 	{
 		lock_guard<mutex> lock(_PacketListLock);
-		return _PacketsToSend.size();
+		return static_cast<uint32_t>(_PacketsToSend.size());
 	}
 }
 
