@@ -5,14 +5,14 @@
 using namespace Sbatman::Networking;
 using namespace std;
 
-/// <summary>
-/// A simple client that can connect to insanedev.networking servers and other servers
-/// using the same packet layout
-/// </summary>
 namespace Sbatman
 {
 	namespace Networking
 	{
+		/// <summary>
+		/// A simple client that can connect to insanedev.networking servers and other servers
+		/// using the same packet layout
+		/// </summary>
 		class BaseClient
 		{
 		public:
