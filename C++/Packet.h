@@ -35,6 +35,8 @@ namespace Sbatman
 				COMPRESSED_BYTE_PACKET,
 			};
 
+			typedef std::tuple<void *, Packet::ParamTypes> PakObject;
+
 			Packet(uint16_t type);
 			~Packet();
 
@@ -85,7 +87,7 @@ namespace Sbatman
 			///     Retutns a vector containing pointers to all the objects in this packet
 			///     The pointers will become invalid if this packet is deleted
 			/// </summary>
-			std::vector<void *> GetObjects() const;
+			std::vector<PakObject> GetObjects() const;
 			/// <summary>
 			///     Returns the type id of this packet
 			/// </summary>
@@ -120,7 +122,7 @@ namespace Sbatman
 			/// <summary>
 			///     A vector to pointers of the packet objects
 			/// </summary>
-			std::vector<void *> _PackedObjects;
+			std::vector<PakObject> _PackedObjects;
 			/// <summary>
 			///     The number of objects that are stored in the packet
 			/// </summary>
@@ -166,6 +168,8 @@ namespace Sbatman
 			///     Rebuilds the vector of stored values from the data array
 			/// </summary>
 			void UpdateObjects();
+
+			void DeletePackedObjects();
 		};
 	}
 }

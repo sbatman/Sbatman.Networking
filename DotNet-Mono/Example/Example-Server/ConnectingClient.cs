@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Net.Sockets;
 using Sbatman.Networking;
 
@@ -38,7 +39,8 @@ namespace Example_Server
                 switch (packet.Type)
                 {
                     case 10:
-                        Program.Write(((long)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));
+                        Program.Write(((Int64)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));
+                        Program.Write(((float)packet.GetObjects()[1]).ToString(CultureInfo.InvariantCulture));
                         SendPacket(new Packet(45));
                         break;
                     case 11:

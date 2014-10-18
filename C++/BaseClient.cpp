@@ -7,12 +7,17 @@ using namespace Sbatman::Networking;
 BaseClient::BaseClient()
 {
 	_Connected = false;
+	_RecBuffer = nullptr;
 }
 
 
 BaseClient::~BaseClient()
 {
-	delete[] _RecBuffer;
+	if (_RecBuffer != nullptr)
+	{
+		delete [] _RecBuffer;
+		_RecBuffer = nullptr;
+	}
 	if (_InternalConnectSocket != INVALID_SOCKET) SocketClose();
 	_Connected = false;
 	_PacketHandel->join();
@@ -29,6 +34,12 @@ bool BaseClient::Connect(string serverAddress, uint32_t port, uint32_t recBuffer
 		_ASSERT(_InternalConnectSocket == INVALID_SOCKET);
 		_ASSERT(!_Connected);
 
+		//
+		if (_RecBuffer != nullptr)
+		{
+			delete [] _RecBuffer;
+			_RecBuffer = nullptr;
+		}
 		//setup recieve buffer
 		_RecBufferSize = recBufferSize;
 		_RecBuffer = new uint8_t[recBufferSize];
@@ -91,17 +102,17 @@ void BaseClient::SendPacket(Packet* packet)
 	}
 }
 
-vector<Packet*>* BaseClient::GetPacketsToProcess()
+vector<Packet*> BaseClient::GetPacketsToProcess()
 {
 	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
-	vector<Packet*> * returnList = new vector<Packet*>();
+	vector<Packet*> returnList = vector<Packet*>();
 
 	{
 		lock_guard<mutex> lock(_ProcessPacketListLock);
 
-		if (_PacketsToProcess.size() == 0) return nullptr;
+		if (_PacketsToProcess.size() == 0) return returnList;
 
-		for (Packet * p : _PacketsToProcess) returnList->push_back(p);
+		for (Packet * p : _PacketsToProcess) returnList.push_back(p);
 
 		_PacketsToProcess.clear();
 
@@ -183,6 +194,11 @@ void BaseClient::SocketClose()
 	closesocket(_InternalConnectSocket);
 	_InternalConnectSocket = INVALID_SOCKET;
 	WSACleanup();
+	if (_RecBuffer != nullptr)
+	{
+		delete [] _RecBuffer;
+		_RecBuffer = nullptr;
+	}
 }
 
 void BaseClient::Update()
