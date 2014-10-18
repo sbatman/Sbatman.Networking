@@ -11,32 +11,29 @@ using Sbatman::Networking::Packet;
 int _tmain(int argc, _TCHAR* argv [])
 {
 	BaseClient * client = new BaseClient();
-	client->Connect("127.0.0.1", 6789);
+	client->Connect("sbatman.com", 6789);
 	int64_t i = 0;
-	while (true){
+	while (true)
+	{
+		if (i>5000)break;
+		Packet* p = new Packet(10);
+		p->AddInt64(i);
+		p->AddFloat(2.3f);
+		client->SendPacket(p);
 
-		if ((i % 100) != 0)
+		vector<Packet*>  list = (client->GetPacketsToProcess());
+		for (Packet * p : list)
 		{
-			Packet* p = new Packet(10);
-			p->AddInt64(i);
-			client->SendPacket(p);
-		}
-		else
-		{
-			vector<Packet*> * list = (client->GetPacketsToProcess());
-			if (list != nullptr)
-			{
-				for (Packet * p : *list)
-				{
-					printf("%d", p->GetType());
-					delete p;
-				}
-				delete list;
-			}
+			printf("%d", p->GetType());
+			delete p;
 		}
 		i++;
 		Sleep(1);
 	}
+
+	client->Disconnect();
+	delete client;
+
 	return 0;
 }
 

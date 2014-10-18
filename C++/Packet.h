@@ -35,6 +35,8 @@ namespace Sbatman
 				COMPRESSED_BYTE_PACKET,
 			};
 
+			typedef std::tuple<void *, Packet::ParamTypes> PakObject;
+
 			Packet(uint16_t type);
 			~Packet();
 
@@ -51,25 +53,29 @@ namespace Sbatman
 			/// </summary>
 			void AddInt16(const int16_t value);
 			/// <summary>
-			///     adds the unsigned int16 ptovided to the packet
+			///     adds the unsigned int16 provided to the packet
 			/// </summary>
 			void AddUint16(const uint16_t value);
 			/// <summary>
-			///     Adds the int32 ptovided to the packet
+			///     Adds the int32 provided to the packet
 			/// </summary>
 			void AddInt32(const int32_t value);
 			/// <summary>
-			///     Adds the unsigned int32 ptovided to the packet
+			///     Adds the unsigned int32 provided to the packet
 			/// </summary>
 			void AddUint32(const uint32_t value);
 			/// <summary>
-			///     Adds the int64 ptovided to the packet
+			///     Adds the int64 provided to the packet
 			/// </summary>
 			void  AddInt64(const int64_t value);
 			/// <summary>
-			///     adds the unsigned int64 ptovided to the packet
+			///     Adds the unsigned int64 provided to the packet
 			/// </summary>
 			void AddUint64(const uint64_t value);
+			/// <summary>
+			///     Adds the boolean provided to the packet
+			/// </summary>
+			void AddBool(const bool value);
 
 			/// <summary>
 			///     Generates a byte arry from the packet returning the length in bytes
@@ -81,7 +87,7 @@ namespace Sbatman
 			///     Retutns a vector containing pointers to all the objects in this packet
 			///     The pointers will become invalid if this packet is deleted
 			/// </summary>
-			std::vector<void *> GetObjects() const;
+			std::vector<PakObject> GetObjects() const;
 			/// <summary>
 			///     Returns the type id of this packet
 			/// </summary>
@@ -116,7 +122,7 @@ namespace Sbatman
 			/// <summary>
 			///     A vector to pointers of the packet objects
 			/// </summary>
-			std::vector<void *> _PackedObjects;
+			std::vector<PakObject> _PackedObjects;
 			/// <summary>
 			///     The number of objects that are stored in the packet
 			/// </summary>
@@ -162,6 +168,8 @@ namespace Sbatman
 			///     Rebuilds the vector of stored values from the data array
 			/// </summary>
 			void UpdateObjects();
+
+			void DeletePackedObjects();
 		};
 	}
 }

@@ -12,7 +12,7 @@ Packet::Packet(uint16_t type)
 	_Data = new uint8_t[INITIAL_DATA_SIZE];
 	_DataArraySize = INITIAL_DATA_SIZE;
 	_DataPos = 0;
-	_PackedObjects = std::vector<void *>();
+	_PackedObjects = std::vector<PakObject>();
 	_ParamCount = 0;
 	_Type = type;
 	_ReturnByteArray = nullptr;
@@ -58,6 +58,11 @@ void Packet::AddUint64(uint64_t const value)
 	AddToDataArray<uint64_t>(UINT64, sizeof(uint64_t), &value);
 }
 
+void Packet::AddBool(bool const value)
+{
+	AddToDataArray<bool>(BOOL, sizeof(uint64_t), &value);
+}
+
 const uint32_t Packet::ToByteArray(uint8_t ** dataPointer)
 {
 	if (_ReturnByteArray == nullptr)
@@ -74,7 +79,7 @@ const uint32_t Packet::ToByteArray(uint8_t ** dataPointer)
 	return _ReturnByteArraySize;
 }
 
-std::vector<void*> Packet::GetObjects() const
+std::vector<Packet::PakObject> Packet::GetObjects() const
 {
 	return _PackedObjects;
 }
@@ -106,7 +111,7 @@ void Packet::DestroyReturnByteArray()
 {
 	if (_ReturnByteArray != nullptr)
 	{
-		delete[] _ReturnByteArray;
+		delete [] _ReturnByteArray;
 		_ReturnByteArray = nullptr;
 		_ReturnByteArraySize = 0;
 	}
@@ -119,61 +124,88 @@ void Packet::ExpandDataArray()
 	_Data = new uint8_t[_DataArraySize * 2];
 	_DataArraySize = _DataArraySize * 2;
 	memcpy_s(_Data, sizeof(_Data) *_DataArraySize, oldData, oldDataSize);
-	delete[] oldData;
+	delete [] oldData;
 }
 
 void Packet::UpdateObjects()
 {
-	for (void * object : _PackedObjects)delete object;
-	_PackedObjects.clear();
+	DeletePackedObjects();
 
 	int ArrayPos = 0;
-	for (int i = 0; i < _ParamCount; ++i)
+	for (uint16_t i = 0; i < _ParamCount; ++i)
 	{
 		uint8_t type = 0;
 		memcpy_s(&type, sizeof(uint8_t), _Data + ArrayPos, sizeof(uint8_t));
 		ArrayPos += 1;
 		switch (static_cast<ParamTypes>(type))
 		{
-		case FLOAT:
-			_PackedObjects.push_back(GetDataFromArray<float_t>(ArrayPos));
-			ArrayPos += sizeof(float_t);
-			break;
-		case DOUBLE:
-			_PackedObjects.push_back(GetDataFromArray<double_t>(ArrayPos));
-			ArrayPos += sizeof(double_t);
-			break;
-		case INT16:
-			_PackedObjects.push_back(GetDataFromArray<int16_t>(ArrayPos));
-			ArrayPos += sizeof(int16_t);
-			break;
-		case UINT16:
-			_PackedObjects.push_back(GetDataFromArray<uint16_t>(ArrayPos));
-			ArrayPos += sizeof(uint16_t);
-			break;
-		case INT32:
-			_PackedObjects.push_back(GetDataFromArray<int32_t>(ArrayPos));
-			ArrayPos += sizeof(int32_t);
-			break;
-		case UINT32:
-			_PackedObjects.push_back(GetDataFromArray<uint32_t>(ArrayPos));
-			ArrayPos += sizeof(uint32_t);
-			break;
-		case INT64:
-			_PackedObjects.push_back(GetDataFromArray<int64_t>(ArrayPos));
-			ArrayPos += sizeof(int64_t);
-			break;
-		case UINT64:
-			_PackedObjects.push_back(GetDataFromArray<uint64_t>(ArrayPos));
-			ArrayPos += sizeof(uint64_t);
-			break;
-		case BOOL: break;
-		case BYTE_PACKET: break;
-		case UTF8_STRING: break;
-		case COMPRESSED_BYTE_PACKET: break;
-		default: break;
+			case FLOAT:
+				_PackedObjects.push_back(PakObject(GetDataFromArray<float_t>(ArrayPos), FLOAT));
+				ArrayPos += sizeof(float_t);
+				break;
+			case DOUBLE:
+				_PackedObjects.push_back(PakObject(GetDataFromArray<double_t>(ArrayPos), DOUBLE));
+				ArrayPos += sizeof(double_t);
+				break;
+			case INT16:
+				_PackedObjects.push_back(PakObject(GetDataFromArray<int16_t>(ArrayPos), INT16));
+				ArrayPos += sizeof(int16_t);
+				break;
+			case UINT16:
+				_PackedObjects.push_back(PakObject(GetDataFromArray<uint16_t>(ArrayPos), UINT16));
+				ArrayPos += sizeof(uint16_t);
+				break;
+			case INT32:
+				_PackedObjects.push_back(PakObject(GetDataFromArray<int32_t>(ArrayPos), INT32));
+				ArrayPos += sizeof(int32_t);
+				break;
+			case UINT32:
+				_PackedObjects.push_back(PakObject(GetDataFromArray<uint32_t>(ArrayPos), UINT32));
+				ArrayPos += sizeof(uint32_t);
+				break;
+			case INT64:
+				_PackedObjects.push_back(PakObject(GetDataFromArray<int64_t>(ArrayPos), INT64));
+				ArrayPos += sizeof(int64_t);
+				break;
+			case UINT64:
+				_PackedObjects.push_back(PakObject(GetDataFromArray<uint64_t>(ArrayPos), UINT64));
+				ArrayPos += sizeof(uint64_t);
+				break;
+			case BOOL:
+				_PackedObjects.push_back(PakObject(GetDataFromArray<bool>(ArrayPos), BOOL));
+				ArrayPos += sizeof(bool);
+				break;
+			case BYTE_PACKET: break;
+			case UTF8_STRING: break;
+			case COMPRESSED_BYTE_PACKET: break;
+			default: break;
 		}
 	}
+}
+
+void Packet::DeletePackedObjects()
+{
+	for (PakObject object : _PackedObjects)
+	{
+		switch (std::get<1>(object))
+		{
+			case FLOAT:		delete static_cast<float *>(std::get<0>(object)); break;
+			case DOUBLE:	delete static_cast<double *>(std::get<0>(object)); break;
+			case INT16:		delete static_cast<int16_t *>(std::get<0>(object)); break;
+			case UINT16:	delete static_cast<uint16_t *>(std::get<0>(object)); break;
+			case INT32:		delete static_cast<int32_t *>(std::get<0>(object)); break;
+			case UINT32:	delete static_cast<uint32_t *>(std::get<0>(object)); break;
+			case INT64:		delete static_cast<int64_t *>(std::get<0>(object)); break;
+			case UINT64:	delete static_cast<uint64_t *>(std::get<0>(object)); break;
+			case BOOL:		delete static_cast<bool *>(std::get<0>(object)); break;
+			case BYTE_PACKET: break;
+			case UTF8_STRING: break;
+			case COMPRESSED_BYTE_PACKET: break;
+			default: break;
+		}
+
+	}
+	_PackedObjects.clear();
 }
 
 template <typename T>
@@ -199,13 +231,14 @@ Packet::~Packet()
 {
 	if (_ReturnByteArray != nullptr)
 	{
-		delete[] _ReturnByteArray;
+		delete [] _ReturnByteArray;
 		_ReturnByteArray = nullptr;
 		_ReturnByteArraySize = 0;
 	}
-	delete[] _Data;
+	delete [] _Data;
 	_DataPos = 0;
-	for (void * ptr : _PackedObjects)delete ptr;
+	DeletePackedObjects();
+
 	_ParamCount = 0;
 	_Type = 0;
 }
