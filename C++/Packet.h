@@ -169,6 +169,10 @@ namespace Sbatman
 			/// </summary>
 			void UpdateObjects();
 
+
+			/// <summary>
+			///     Deletes the internal vector of packed objects in a memory safe way
+			/// </summary>
 			void DeletePackedObjects();
 		};
 	}
