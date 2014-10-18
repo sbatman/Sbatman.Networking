@@ -11,7 +11,7 @@ using Sbatman::Networking::Packet;
 int _tmain(int argc, _TCHAR* argv [])
 {
 	BaseClient * client = new BaseClient();
-	client->Connect("sbatman.com", 6789);
+	client->Connect("127.0.0.1", 6789);
 	int64_t i = 0;
 	while (true)
 	{

@@ -3,12 +3,12 @@ using System.Reflection;
 // Information about this assembly is defined by the following attributes.
 // Change them to the values specific to your project.
 
-[assembly: AssemblyTitle("InsaneDev.Networking")]
-[assembly: AssemblyDescription("InsaneDev.Networking is a lightweight and easy to use networking abstraction library. Offering easy packet building and handeling. It also offers easy client server connectivity management.")]
+[assembly: AssemblyTitle("Sbatman.Networking")]
+[assembly: AssemblyDescription("Sbatman.Networking is a lightweight and easy to use networking abstraction library. Offering easy packet building and handeling. It also offers easy client server connectivity management.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("InsaneDev.co.uk")]
+[assembly: AssemblyCompany("Sbatman.com")]
 [assembly: AssemblyProduct("")]
-[assembly: AssemblyCopyright("InsaneDev.co.uk")]
+[assembly: AssemblyCopyright("Sbatman.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -16,7 +16,7 @@ using System.Reflection;
 // The form "{Major}.{Minor}.*" will automatically update the build and revision,
 // and "{Major}.{Minor}.{Build}.*" will update just the revision.
 
-[assembly: AssemblyVersion("0.9.2.1243")]
+[assembly: AssemblyVersion("0.9.3.1319")]
 
 // The following attributes are used to specify the signing key for the assembly,
 // if desired. See the Mono documentation for more information about signing.
@@ -24,4 +24,4 @@ using System.Reflection;
 //[assembly: AssemblyDelaySign(false)]
 //[assembly: AssemblyKeyFile("")]
 
-[assembly: AssemblyFileVersion("0.9.2.1243")]
+[assembly: AssemblyFileVersion("0.9.3.1319")]
