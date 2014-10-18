@@ -5,14 +5,14 @@
 using namespace Sbatman::Networking;
 using namespace std;
 
-/// <summary>
-/// A simple client that can connect to insanedev.networking servers and other servers
-/// using the same packet layout
-/// </summary>
 namespace Sbatman
 {
 	namespace Networking
 	{
+		/// <summary>
+		/// A simple client that can connect to insanedev.networking servers and other servers
+		/// using the same packet layout
+		/// </summary>
 		class BaseClient
 		{
 		public:
@@ -31,7 +31,7 @@ namespace Sbatman
 			/// Returns a vector of pointers to packets that have to be processed, you assume resposibility
 			/// for deleting the packets once you have processed them.
 			/// </summary>
-			vector<Packet*> * GetPacketsToProcess();
+			vector<Packet*> GetPacketsToProcess();
 			/// <summary>
 			/// Returns the current number of packets that have arrived and are awaiting processing
 			/// </summary>
