@@ -16,6 +16,15 @@ namespace Sbatman
 		class BaseClient
 		{
 		public:
+
+			class NotConnectedException : public exception
+			{
+				virtual const char* what() const throw()
+				{
+					return "Not Connected";
+				}
+			};
+
 			BaseClient();
 			~BaseClient();
 
@@ -62,7 +71,6 @@ namespace Sbatman
 			void Disconnect();
 
 		private:
-
 			/// <summary>
 			/// Internal socket used for interacting with the winsockets api
 			/// </summary>

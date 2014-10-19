@@ -35,7 +35,19 @@ namespace Sbatman
 				COMPRESSED_BYTE_PACKET,
 			};
 
-			typedef std::tuple<void *, Packet::ParamTypes> PakObject;
+			struct PakObject
+			{
+				void * Ptr;
+				ParamTypes Type;
+				uint32_t Size;
+
+				PakObject(void * ptr, ParamTypes type, uint32_t size)
+				{
+					Ptr = ptr;
+					Type = type;
+					Size = size;
+				}
+			};
 
 			Packet(uint16_t type);
 			~Packet();
@@ -76,6 +88,10 @@ namespace Sbatman
 			///     Adds the boolean provided to the packet
 			/// </summary>
 			void AddBool(const bool value);
+			/// <summary>
+			///     Adds a byte array provided to the packet
+			/// </summary>
+			void AddByteArray(const uint8_t * value, const uint32_t length);
 
 			/// <summary>
 			///     Generates a byte arry from the packet returning the length in bytes
@@ -157,6 +173,8 @@ namespace Sbatman
 			/// </summary>
 			template <typename T>
 			T * GetDataFromArray(int offset);
+
+			uint32_t  GetDataFromArray(int offset, uint8_t ** pointer);
 
 			/// <summary>
 			///     Adds the provided data to the specified position in the data array

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Net.Sockets;
+using System.Text;
 using Sbatman.Networking;
 
 namespace Example_Server
@@ -41,7 +42,21 @@ namespace Example_Server
                     case 10:
                         Program.Write(((Int64)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));
                         Program.Write(((float)packet.GetObjects()[1]).ToString(CultureInfo.InvariantCulture));
-                        SendPacket(new Packet(45));
+
+                        byte[] data = ((byte[]) packet.GetObjects()[2]);
+                        StringBuilder sb = new StringBuilder();
+                        foreach (byte b in data)
+                        {
+                            sb.Append(b);
+                            sb.Append(',');
+                        }
+
+                        Program.Write(sb.ToString());
+
+                        Packet response = new Packet(45);
+                        response.AddBytePacket(data);
+
+                        SendPacket(response);
                         break;
                     case 11:
                         Program.Write(((bool)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));
