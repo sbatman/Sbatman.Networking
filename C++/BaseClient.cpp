@@ -95,47 +95,59 @@ bool BaseClient::Connect(string serverAddress, uint32_t port, uint32_t recBuffer
 
 void BaseClient::SendPacket(Packet* packet)
 {
-	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
+	if (_InternalConnectSocket != INVALID_SOCKET && _Connected)
 	{
 		lock_guard<mutex> lock(_PacketListLock);
 		_PacketsToSend.push_back(packet);
+	}
+	else
+	{
+		throw NotConnectedException();
 	}
 }
 
 vector<Packet*> BaseClient::GetPacketsToProcess()
 {
-	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
-	vector<Packet*> returnList = vector<Packet*>();
-
+	if (_InternalConnectSocket != INVALID_SOCKET  && _Connected)
 	{
-		lock_guard<mutex> lock(_ProcessPacketListLock);
+		vector<Packet*> returnList = vector<Packet*>();
 
-		if (_PacketsToProcess.size() == 0) return returnList;
+		{
+			lock_guard<mutex> lock(_ProcessPacketListLock);
 
-		for (Packet * p : _PacketsToProcess) returnList.push_back(p);
+			if (_PacketsToProcess.size() == 0) return returnList;
 
-		_PacketsToProcess.clear();
+			for (Packet * p : _PacketsToProcess) returnList.push_back(p);
 
+			_PacketsToProcess.clear();
+
+		}
+		return returnList;
 	}
-	return returnList;
+	else
+	{
+		throw NotConnectedException();
+	}
 }
 
 uint32_t BaseClient::GetPacketsToProcessCount()
 {
-	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
+	if (_InternalConnectSocket != INVALID_SOCKET  && _Connected)
 	{
 		lock_guard<mutex> lock(_ProcessPacketListLock);
 		return static_cast<uint32_t>(_PacketsToProcess.size());
 	}
+	throw NotConnectedException();
 }
 
 uint32_t BaseClient::GetPacketsToSendCount()
 {
-	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
+	if (_InternalConnectSocket != INVALID_SOCKET  && _Connected)
 	{
 		lock_guard<mutex> lock(_PacketListLock);
 		return static_cast<uint32_t>(_PacketsToSend.size());
 	}
+	throw NotConnectedException();
 }
 
 bool BaseClient::IsConnected() const
@@ -145,11 +157,14 @@ bool BaseClient::IsConnected() const
 
 bool BaseClient::GetFoceNoDelay() const
 {
-	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
-	bool flag;
-	int len;
-	getsockopt(_InternalConnectSocket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&flag), &len);
-	return flag;
+	if (_InternalConnectSocket != INVALID_SOCKET  && _Connected)
+	{
+		bool flag;
+		int len;
+		getsockopt(_InternalConnectSocket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&flag), &len);
+		return flag;
+	}
+	throw NotConnectedException();
 }
 
 void BaseClient::Disconnect()
@@ -162,31 +177,51 @@ void BaseClient::Disconnect()
 
 void BaseClient::SetForceNoDelay(bool state)
 {
-	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
-	bool flag = state;
-	setsockopt(_InternalConnectSocket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&flag), sizeof(bool));
+	if (_InternalConnectSocket != INVALID_SOCKET  && _Connected)
+	{
+		bool flag = state;
+		setsockopt(_InternalConnectSocket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&flag), sizeof(bool));
+	}
+	else
+	{
+		throw NotConnectedException();
+	}
 }
 
 bool BaseClient::SocketWrite(const uint8_t * data, uint32_t length)
 {
-	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
-	int iResult = send(_InternalConnectSocket, reinterpret_cast<const char *>(data), length, 0);
-	if (iResult == SOCKET_ERROR) {
-		SocketClose();
-		return false;
+	if (_InternalConnectSocket != INVALID_SOCKET  && _Connected)
+	{
+		int iResult = send(_InternalConnectSocket, reinterpret_cast<const char *>(data), length, 0);
+		if (iResult == SOCKET_ERROR) {
+			SocketClose();
+			return false;
+		}
+		return true;
 	}
-	return true;
+	throw NotConnectedException();
 }
 
 int BaseClient::SocketRead(uint8_t* data, uint32_t max)
 {
-	_ASSERT(_InternalConnectSocket != INVALID_SOCKET);
-	u_long iMode = 1;
-	ioctlsocket(_InternalConnectSocket, FIONBIO, &iMode);
-	int bytes = recv(_InternalConnectSocket, reinterpret_cast<char*>(data), max, 0);
-	iMode = 0;
-	ioctlsocket(_InternalConnectSocket, FIONBIO, &iMode);
-	return bytes < 0 ? 0 : bytes;
+	if (_InternalConnectSocket != INVALID_SOCKET  && _Connected)
+	{
+		try
+		{
+			u_long iMode = 1;
+			ioctlsocket(_InternalConnectSocket, FIONBIO, &iMode);
+			int bytes = recv(_InternalConnectSocket, reinterpret_cast<char*>(data), max, 0);
+			iMode = 0;
+			ioctlsocket(_InternalConnectSocket, FIONBIO, &iMode);
+			return bytes < 0 ? 0 : bytes;
+		}
+		catch (exception e)
+		{
+			SocketClose();
+			return 0;
+		}
+	}
+	throw NotConnectedException();
 }
 
 void BaseClient::SocketClose()

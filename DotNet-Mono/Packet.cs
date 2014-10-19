@@ -42,7 +42,7 @@ namespace Sbatman.Networking
         /// <summary>
         ///     The current position in the internal data array
         /// </summary>
-        protected int _DataPos;
+        protected UInt32 _DataPos;
 
         /// <summary>
         ///     Whether the packet is disposed
@@ -135,7 +135,7 @@ namespace Sbatman.Networking
         {
             if (_Disposed) throw new ObjectDisposedException(ToString());
             _ReturnByteArray = null;
-            int size = byteArray.Length;
+            UInt32 size = (UInt32) byteArray.Length;
             while (_DataPos + (size + 5) >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.BYTE_PACKET;
             BitConverter.GetBytes(byteArray.Length).CopyTo(_Data, _DataPos);
@@ -156,7 +156,7 @@ namespace Sbatman.Networking
             if (_Disposed) throw new ObjectDisposedException(ToString());
             byteArray = Compress(byteArray);
             _ReturnByteArray = null;
-            int size = byteArray.Length;
+            UInt32 size = (UInt32)byteArray.Length;
             while (_DataPos + (size + 5) >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.COMPRESSED_BYTE_PACKET;
             BitConverter.GetBytes(byteArray.Length).CopyTo(_Data, _DataPos);
@@ -304,7 +304,7 @@ namespace Sbatman.Networking
             if (_Disposed) throw new ObjectDisposedException(ToString());
             byte[] byteArray = Encoding.UTF8.GetBytes(s);
             _ReturnByteArray = null;
-            int size = byteArray.Length;
+            UInt32 size = (UInt32)byteArray.Length;
             while (_DataPos + (size + 5) >= _Data.Length) ExpandDataArray();
             _Data[_DataPos++] = (byte)ParamTypes.UTF8_STRING;
             BitConverter.GetBytes(byteArray.Length).CopyTo(_Data, _DataPos);
@@ -344,7 +344,7 @@ namespace Sbatman.Networking
                 _ParamCount = BitConverter.ToUInt16(data, 4),
                 _Data = new byte[BitConverter.ToInt32(data, 6) - 12]
             };
-            returnPacket._DataPos = returnPacket._Data.Length;
+            returnPacket._DataPos = (UInt32)returnPacket._Data.Length;
             Array.Copy(data, 12, returnPacket._Data, 0, returnPacket._Data.Length);
             returnPacket.UpdateObjects();
             return returnPacket;

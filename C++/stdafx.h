@@ -11,3 +11,4 @@
 #include <thread>
 #include <mutex>
 #include <tuple>
+#include <exception>
