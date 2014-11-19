@@ -5,7 +5,7 @@
     <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{99070811-60A3-4C08-ABCA-BC112B32D4D9}</ProjectGuid>
+    <ProjectGuid>{DD5F9C15-D211-43A0-9F7F-B0BD3D22D577}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Sbatman.Networking.PCL</RootNamespace>
