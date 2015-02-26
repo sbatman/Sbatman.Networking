@@ -408,8 +408,12 @@ namespace Sbatman.Networking
             }
             catch (Exception e)
             {
-             
+                throw new PacketDeserialisationException();
             }
+        }
+
+        public class PacketDeserialisationException : Exception
+        {
         }
 
         /// <summary>
