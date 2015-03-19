@@ -491,8 +491,8 @@ namespace Sbatman.Networking
             UINT64,
             BOOL,
             BYTE_PACKET,
-            COMPRESSED_BYTE_PACKET,
             UTF8_STRING,
+            COMPRESSED_BYTE_PACKET,
         };
     }
 }
