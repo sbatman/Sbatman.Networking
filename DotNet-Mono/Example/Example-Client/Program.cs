@@ -2,6 +2,7 @@
 using System.Threading;
 using Sbatman.Networking;
 using Sbatman.Networking.Client;
+using Sbatman.Serialize;
 
 namespace Example_Client
 {

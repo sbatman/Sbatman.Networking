@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Net.Sockets;
 using System.Text;
 using Sbatman.Networking;
+using Sbatman.Serialize;
 
 namespace Example_Server
 {

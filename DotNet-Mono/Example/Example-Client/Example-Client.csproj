@@ -48,6 +48,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\libs\Sbatman.Serialize\Sbatman.Serialize\Sbatman.Serialize.csproj">
+      <Project>{6af99f9b-3485-48ab-b7fa-cea0b7699bf0}</Project>
+      <Name>Sbatman.Serialize</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Sbatman.Networking.csproj">
       <Project>{e627bd2d-226a-4061-bd4e-7e86cf56936d}</Project>
       <Name>Sbatman.Networking</Name>

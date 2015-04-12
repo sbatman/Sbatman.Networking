@@ -1,0 +1,3 @@
+[submodule "DotNet-Mono/libs/Sbatman.Serialize"]
+	path = DotNet-Mono/libs/Sbatman.Serialize
+	url = https://github.com/sbatman/Sbatman.Serialize.git
