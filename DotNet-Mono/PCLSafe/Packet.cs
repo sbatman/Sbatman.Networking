@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Text;
 
 #endregion
@@ -139,6 +141,26 @@ namespace Sbatman.Networking
             BitConverter.GetBytes(byteArray.Length).CopyTo(_Data, (int)_DataPos);
             _DataPos += 4;
             byteArray.CopyTo(_Data, (int)_DataPos);
+            _DataPos += size;
+            _ParamCount++;
+        }
+
+        /// <summary>
+        ///     Adds a byte array to the packet Compressed
+        /// </summary>
+        /// <param name="byteArray">The bytearray to add</param>
+        /// <exception cref="ObjectDisposedException">Will throw if packet is disposed</exception>
+        public void AddBytePacketCompressed(byte[] byteArray)
+        {
+            if (_Disposed) throw new ObjectDisposedException(ToString());
+            byteArray = Compress(byteArray);
+            _ReturnByteArray = null;
+            UInt32 size = (UInt32)byteArray.Length;
+            while (_DataPos + (size + 5) >= _Data.Length) ExpandDataArray();
+            _Data[_DataPos++] = (byte)ParamTypes.COMPRESSED_BYTE_PACKET;
+            BitConverter.GetBytes(byteArray.Length).CopyTo(_Data, (Int32)_DataPos);
+            _DataPos += 4;
+            byteArray.CopyTo(_Data, (Int32)_DataPos);
             _DataPos += size;
             _ParamCount++;
         }
@@ -396,6 +418,13 @@ namespace Sbatman.Networking
                             _PacketObjects.Add(BitConverter.ToInt16(_Data, bytepos));
                             bytepos += 2;
                             break;
+                        case ParamTypes.COMPRESSED_BYTE_PACKET:
+                            byte[] data2 = new byte[BitConverter.ToInt32(_Data, bytepos)];
+                            bytepos += 4;
+                            Array.Copy(_Data, bytepos, data2, 0, data2.Length);
+                            _PacketObjects.Add(Uncompress(data2));
+                            bytepos += data2.Length;
+                            break;
                         case ParamTypes.UTF8_STRING:
                             byte[] data3 = new byte[BitConverter.ToInt32(_Data, bytepos)];
                             bytepos += 4;
@@ -425,7 +454,31 @@ namespace Sbatman.Networking
             byte[] newData = new byte[_Data.Length * 2];
             _Data.CopyTo(newData, 0);
             _Data = newData;
-        }     
+        }
+
+        public static byte[] Uncompress(byte[] bytes)
+        {
+            using (DeflateStream ds = new DeflateStream(new MemoryStream(bytes), CompressionMode.Decompress))
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    ds.CopyTo(ms);
+                    return ms.ToArray();
+                }
+            }
+        }
+
+        public static byte[] Compress(byte[] bytes)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (DeflateStream ds = new DeflateStream(ms, CompressionMode.Compress))
+                {
+                    ds.Write(bytes, 0, bytes.Length);
+                }
+                return ms.ToArray();
+            }
+        }
 
         /// <summary>
         ///     An enum containing supported types
@@ -443,6 +496,7 @@ namespace Sbatman.Networking
             BOOL,
             BYTE_PACKET,
             UTF8_STRING,
+            COMPRESSED_BYTE_PACKET,
         };
     }
 }
