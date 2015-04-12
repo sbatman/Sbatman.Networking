@@ -7,6 +7,11 @@ Sbatman.Networking is a lightweight and easy to use networking abstraction libra
 It also offers easy client server connectivity management. It currently offers a .net implementation with a c++ implementation
 in development (Client side complete)
 
+Nuget
+--------
+PM> Install-Package Sbatman.Networking
+https://www.nuget.org/packages/Sbatman.Networking/
+
 Team
 --------
 Steven Batchelor-Manning 
