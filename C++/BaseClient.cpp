@@ -81,10 +81,10 @@ bool BaseClient::Connect(string serverAddress, uint32_t port, uint32_t recBuffer
 		if (iResult == SOCKET_ERROR) {
 			SocketClose();
 		}
-
+		_Connected = true;
 		SetForceNoDelay(true);
 
-		_Connected = true;
+	
 		_PacketHandel = new thread(&BaseClient::Update, this);
 
 
