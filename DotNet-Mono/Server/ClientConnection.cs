@@ -24,7 +24,7 @@ namespace Sbatman.Networking.Server
         ///     has been converted from the byte[] to the actual packet, it does not count towards
         ///     this limit. Packets above this size are lost.
         /// </summary>
-        public const int INTERNAL_BUFFER_KB = 1024;
+        public int InternalBufferKb = 1024;
 
         private static int _LastClientIDAllocated;
 
@@ -48,9 +48,10 @@ namespace Sbatman.Networking.Server
         ///     An instance of a client connection on the server
         /// </summary>
         /// <param name="newSocket"> </param>
-        protected ClientConnection(TcpClient newSocket)
+        protected ClientConnection(TcpClient newSocket, Int32 internalbufferKB = 1024)
         {
-            _ByteBuffer = new byte[INTERNAL_BUFFER_KB * 1024];
+            InternalBufferKb = internalbufferKB;
+            _ByteBuffer = new byte[InternalBufferKb * 1024];
             _ClientId = GetNewClientId();
             _TimeOfConnection = DateTime.Now;
             _AttachedSocket = newSocket;
