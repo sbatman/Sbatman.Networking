@@ -79,7 +79,7 @@ namespace Sbatman.Networking.Client
         /// <param name="bufferSize">The size in bytes of the internal store for recieved but unprocessed packets</param>
         public bool Connect(String serverAddress, int port, int bufferSize = 50000)
         {
-            _BufferSize = 50000;
+            _BufferSize = bufferSize;
             _ErrorMessage = "";
             _Error = false;
             if (_ByteBuffer == null)
