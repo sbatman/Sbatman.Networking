@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using Sbatman.Networking;
 using Sbatman.Serialize;
+using System.Collections.Generic;
 
 namespace Example_Server
 {
@@ -49,6 +50,22 @@ namespace Example_Server
                         foreach (byte b in data)
                         {
                             sb.Append(b);
+                            sb.Append(',');
+                        }
+                        sb.AppendLine();
+
+                        foreach (double d in (List<double>)packet.GetObjects()[3])
+                        {
+                            sb.Append(d);
+                            sb.Append(',');
+                        }
+
+
+                            sb.AppendLine();
+
+                            foreach (float d in (List<float>)packet.GetObjects()[4])
+                        {
+                            sb.Append(d);
                             sb.Append(',');
                         }
 

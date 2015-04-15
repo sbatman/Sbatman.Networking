@@ -34,8 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Sbatman.Serialize">
-      <HintPath>..\..\packages\Sbatman.Serialize.0.3.0.2039\lib\portable-net45+win+wpa81+wp80\Sbatman.Serialize.dll</HintPath>
+    <Reference Include="Sbatman.Serialize, Version=0.4.0.11, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Sbatman.Serialize.0.4.0.11\lib\portable-net45+win+wpa81+wp80\Sbatman.Serialize.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
