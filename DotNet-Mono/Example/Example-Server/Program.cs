@@ -7,7 +7,7 @@ namespace Example_Server
 {
     class Program
     {
-        private static readonly object _LockingObject = new object();
+        private static readonly Object _LockingObject = new Object();
         static void Main()
         {
             BaseServer server = new BaseServer();//Create an instance of the server
@@ -25,7 +25,7 @@ namespace Example_Server
         /// ClientConnections are Threaded so calls from it to this function need to be thread safe
         /// </summary>
         /// <param name="s">The string to write to console</param>
-        internal static void Write(string s)
+        internal static void Write(String s)
         {
            lock (_LockingObject) Console.WriteLine(s);
         }

@@ -29,17 +29,17 @@ namespace Sbatman.Networking.Client
         /// <summary>
         ///     The buffer size allocated to this client
         /// </summary>
-        protected int _BufferSize;
+        protected Int32 _BufferSize;
 
         /// <summary>
         ///     Buffer of butes used to collect incomming packets and putt hem together
         /// </summary>
-        protected byte[] _ByteBuffer;
+        protected Byte[] _ByteBuffer;
 
         /// <summary>
         ///     Current point in the byte buffer to use for new data
         /// </summary>
-        protected int _ByteBufferCount;
+        protected Int32 _ByteBufferCount;
 
         /// <summary>
         ///     The TCP socket the client is connected on
@@ -49,22 +49,22 @@ namespace Sbatman.Networking.Client
         /// <summary>
         ///     Bool identifing if the client is currently connected or not
         /// </summary>
-        protected bool _Connected;
+        protected Boolean _Connected;
 
         /// <summary>
         ///     Set true in the event of an error
         /// </summary>
-        protected bool _Error;
+        protected Boolean _Error;
 
         /// <summary>
         ///     Last internal error message
         /// </summary>
-        protected string _ErrorMessage;
+        protected String _ErrorMessage;
 
         /// <summary>
         ///     The interval in MS packets are checked for
         /// </summary>
-        protected int _PacketCheckInterval = 2;
+        protected Int32 _PacketCheckInterval = 2;
 
         /// <summary>
         ///     The thread used for handeling packets
@@ -77,18 +77,18 @@ namespace Sbatman.Networking.Client
         /// <param name="serverAddress"> Adress of server to attempt to connect to </param>
         /// <param name="port">The port over which to connect</param>
         /// <param name="bufferSize">The size in bytes of the internal store for recieved but unprocessed packets</param>
-        public bool Connect(String serverAddress, int port, int bufferSize = 50000)
+        public Boolean Connect(String serverAddress, Int32 port, Int32 bufferSize = 50000)
         {
             _BufferSize = 50000;
             _ErrorMessage = "";
             _Error = false;
             if (_ByteBuffer == null)
             {
-                _ByteBuffer = new byte[_BufferSize];
+                _ByteBuffer = new Byte[_BufferSize];
             }
             else
             {
-                for (int i = 0; i < _BufferSize; i++) _ByteBuffer[i] = 0;
+                for (Int32 i = 0; i < _BufferSize; i++) _ByteBuffer[i] = 0;
             }
             try
             {
@@ -127,7 +127,7 @@ namespace Sbatman.Networking.Client
         ///     lower then 1ms to prevent high cpu usage
         /// </summary>
         /// <param name="timeBetweenChecksInMs"> Number of ms between checks </param>
-        public void SetPacketCheckInterval(int timeBetweenChecksInMs)
+        public void SetPacketCheckInterval(Int32 timeBetweenChecksInMs)
         {
             if (timeBetweenChecksInMs <= 0) timeBetweenChecksInMs = 1;
             _PacketCheckInterval = timeBetweenChecksInMs;
@@ -138,7 +138,7 @@ namespace Sbatman.Networking.Client
         /// decreasing avaliable bandwidth in exchange for quicker response times.
         /// </summary>
         /// <returns></returns>
-        public bool GetForceNoDelay()
+        public Boolean GetForceNoDelay()
         {
             return _ClientSocket.NoDelay;
         }
@@ -148,7 +148,7 @@ namespace Sbatman.Networking.Client
         /// decreasing avaliable bandwidth in exchange for quicker response times. Default = true
         /// </summary>
         /// <param name="setting">True for speed over bandwidth, false for bandwidth over speed</param>
-        public void SetForceNoDelay(bool setting)
+        public void SetForceNoDelay(Boolean setting)
         {
             _ClientSocket.NoDelay = setting;
         }
@@ -162,9 +162,9 @@ namespace Sbatman.Networking.Client
             Packet[] packets;
             lock (_PacketsToProcess)
             {
-                int count = _PacketsToProcess.Count;
+                Int32 count = _PacketsToProcess.Count;
                 packets = new Packet[count];
-                for (int x = 0; x < count; x++)
+                for (Int32 x = 0; x < count; x++)
                 {
                     packets[x] = _PacketsToProcess.Dequeue();
                 }
@@ -189,7 +189,7 @@ namespace Sbatman.Networking.Client
         ///     Retruns an int containing the number of waiting prackets
         /// </summary>
         /// <returns> </returns>
-        public int GetPacketsToProcessCount()
+        public Int32 GetPacketsToProcessCount()
         {
             return _PacketsToProcess.Count;
         }
@@ -198,7 +198,7 @@ namespace Sbatman.Networking.Client
         ///     Retruns an int containing the number of packets that have not yet been sent
         /// </summary>
         /// <returns> </returns>
-        public int GetPacketsToSendCount()
+        public Int32 GetPacketsToSendCount()
         {
             return _PacketsToSend.Count;
         }
@@ -231,7 +231,7 @@ namespace Sbatman.Networking.Client
         ///     Returns true of your connected to the server
         /// </summary>
         /// <returns> </returns>
-        public virtual bool IsConnected()
+        public virtual Boolean IsConnected()
         {
             return _ClientSocket != null && _ClientSocket.Connected;
         }
@@ -264,7 +264,7 @@ namespace Sbatman.Networking.Client
                             NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
                             foreach (Packet packet in templist)
                             {
-                                byte[] data = packet.ToByteArray();
+                                Byte[] data = packet.ToByteArray();
                                 netStream.Write(data, 0, data.Length);
                                 packet.Dispose();
                             }
@@ -276,17 +276,17 @@ namespace Sbatman.Networking.Client
                     {
                         if (_ClientSocket.Available > 0)
                         {
-                            byte[] datapulled = new byte[_ClientSocket.Available];
+                            Byte[] datapulled = new Byte[_ClientSocket.Available];
                             _ClientSocket.GetStream().Read(datapulled, 0, datapulled.Length);
                             Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCount, datapulled.Length);
                             _ByteBufferCount += datapulled.Length;
                         }
                     }
-                    bool finding = _ByteBufferCount > 11;
+                    Boolean finding = _ByteBufferCount > 11;
                     while (finding)
                     {
-                        bool packerstartpresent = true;
-                        for (int x = 0; x < 4; x++)
+                        Boolean packerstartpresent = true;
+                        for (Int32 x = 0; x < 4; x++)
                         {
                             if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
                             packerstartpresent = false;
@@ -294,10 +294,10 @@ namespace Sbatman.Networking.Client
                         }
                         if (packerstartpresent)
                         {
-                            int size = BitConverter.ToInt32(_ByteBuffer, 6);
+                            Int32 size = BitConverter.ToInt32(_ByteBuffer, 6);
                             if (_ByteBufferCount >= size)
                             {
-                                byte[] packet = new byte[size];
+                                Byte[] packet = new Byte[size];
                                 Array.Copy(_ByteBuffer, 0, packet, 0, size);
                                 Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
                                 _ByteBufferCount -= size;
@@ -311,8 +311,8 @@ namespace Sbatman.Networking.Client
                         }
                         else
                         {
-                            int offset = -1;
-                            for (int x = 0; x < _ByteBufferCount; x++)
+                            Int32 offset = -1;
+                            for (Int32 x = 0; x < _ByteBufferCount; x++)
                             {
                                 if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
                             }
@@ -354,7 +354,7 @@ namespace Sbatman.Networking.Client
         ///     Returns true if an internal error has occured. This can be retrived with GetError.
         /// </summary>
         /// <returns></returns>
-        public bool HasErrored()
+        public Boolean HasErrored()
         {
             return _Error;
         }
@@ -363,7 +363,7 @@ namespace Sbatman.Networking.Client
         ///     Returns the message string of the last error and resets the has error to false
         /// </summary>
         /// <returns></returns>
-        public string GetError()
+        public String GetError()
         {
             _Error = false;
             return _ErrorMessage;
@@ -385,7 +385,7 @@ namespace Sbatman.Networking.Client
         /// <returns>
         ///     The internal buffer size in bytes.
         /// </returns>
-        public int GetInternalBufferSize()
+        public Int32 GetInternalBufferSize()
         {
             return _BufferSize;
         }
