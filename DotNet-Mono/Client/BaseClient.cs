@@ -79,7 +79,7 @@ namespace Sbatman.Networking.Client
         /// <param name="bufferSize">The size in bytes of the internal store for recieved but unprocessed packets</param>
         public Boolean Connect(String serverAddress, Int32 port, Int32 bufferSize = 50000)
         {
-            _BufferSize = 50000;
+            _BufferSize = bufferSize;
             _ErrorMessage = "";
             _Error = false;
             if (_ByteBuffer == null)
@@ -302,7 +302,10 @@ namespace Sbatman.Networking.Client
                                 Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
                                 _ByteBufferCount -= size;
                                 Packet p = Packet.FromByteArray(packet);
-                                if (p != null) _PacketsToProcess.Enqueue(p);
+                                if (p != null) lock (_PacketsToProcess)
+                                {
+                                    _PacketsToProcess.Enqueue(p);
+                                }
                             }
                             else
                             {

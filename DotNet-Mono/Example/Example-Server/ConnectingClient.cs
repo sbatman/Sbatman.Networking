@@ -72,7 +72,7 @@ namespace Example_Server
                         Program.Write(sb.ToString());
 
                         Packet response = new Packet(45);
-                        response.AddBytePacket(data);
+                        response.Add(data);
 
                         SendPacket(response);
                         break;
