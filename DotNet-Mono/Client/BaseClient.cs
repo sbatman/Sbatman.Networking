@@ -3,6 +3,7 @@
 using Sbatman.Serialize;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -71,15 +72,36 @@ namespace Sbatman.Networking.Client
         /// </summary>
         protected Thread _PacketHandel;
 
+        protected Action<string> _LogFunction;
+
+        /// <summary>
+        /// Creates an instance of BaseClient, Call connect to establish a connection.
+        /// </summary>
+        /// <param name="logFunction">A function to which the code can log errors or warnings S(left null if not required)</param>
+        public BaseClient(Action<string> logFunction = null)
+        {
+            _LogFunction = logFunction;
+        }
+
         /// <summary>
         ///     Initialise a connection to the speicified adress and port
         /// </summary>
         /// <param name="serverAddress"> Adress of server to attempt to connect to </param>
         /// <param name="port">The port over which to connect</param>
-        /// <param name="bufferSize">The size in bytes of the internal store for recieved but unprocessed packets</param>
-        public Boolean Connect(String serverAddress, Int32 port, Int32 bufferSize = 50000)
+        /// <param name="bufferSizeInKb">The size in Kilobytes of the internal store for recieved but unprocessed packets, packets recieved close to or larger than this size may not be processed</param>
+        public Boolean Connect(String serverAddress, Int32 port, Int32 bufferSizeInKb = 1024)
         {
-            _BufferSize = bufferSize;
+            return Connect(new IPEndPoint(IPAddress.Parse(serverAddress), port), bufferSizeInKb);
+        }
+
+        /// <summary>
+        ///     Initialise a connection to the speicified endpoint
+        /// </summary>
+        /// <param name="ipEndPoint">The endpoint to which a connection should be attempted</param>
+        /// <param name="bufferSizeInKb">The size in Kilobytes of the internal store for recieved but unprocessed packets, packets recieved close to or larger than this size may not be processed</param>
+        public Boolean Connect(IPEndPoint ipEndPoint, Int32 bufferSizeInKb = 1024)
+        {
+            _BufferSize = bufferSizeInKb * 1024;
             _ErrorMessage = "";
             _Error = false;
             if (_ByteBuffer == null)
@@ -94,12 +116,12 @@ namespace Sbatman.Networking.Client
             {
                 if (_ClientSocket == null)
                 {
-                    _ClientSocket = new TcpClient(serverAddress, port);
+                    _ClientSocket = new TcpClient(ipEndPoint);
                     _ClientSocket.NoDelay = true;
                 }
                 else
                 {
-                    _ClientSocket.Connect(serverAddress, port);
+                    _ClientSocket.Connect(ipEndPoint);
                 }
                 if (_ClientSocket.Connected)
                 {
@@ -116,11 +138,12 @@ namespace Sbatman.Networking.Client
             }
             catch
             {
-                Console.WriteLine("NerfCorev2:Networking - Failure to connect to " + serverAddress + " on port " + port);
+                if (_LogFunction != null) _LogFunction(string.Format("NerfCorev2:Networking - Failure to connect to {0} on port {1}", ipEndPoint.Address, ipEndPoint.Port));
             }
 
             return false;
         }
+
 
         /// <summary>
         ///     Changes the number of milliseconds between packet checks (this shouldnt be higer then 4ms for timely responces, or
@@ -303,9 +326,9 @@ namespace Sbatman.Networking.Client
                                 _ByteBufferCount -= size;
                                 Packet p = Packet.FromByteArray(packet);
                                 if (p != null) lock (_PacketsToProcess)
-                                {
-                                    _PacketsToProcess.Enqueue(p);
-                                }
+                                    {
+                                        _PacketsToProcess.Enqueue(p);
+                                    }
                             }
                             else
                             {
