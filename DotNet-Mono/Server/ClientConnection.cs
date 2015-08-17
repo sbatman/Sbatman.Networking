@@ -17,28 +17,21 @@ namespace Sbatman.Networking.Server
         /// <summary>
         ///     The id of the packet sent when connection is established
         /// </summary>
-        public const int CONNECT_PACKET = 9999;
+        public const Int32 CONNECT_PACKET = 9999;
 
-        /// <summary>
-        ///     The size in KB of the internal buffer for storing incoming data. Once a Packet
-        ///     has been converted from the byte[] to the actual packet, it does not count towards
-        ///     this limit. Packets above this size are lost.
-        /// </summary>
-        public const int INTERNAL_BUFFER_KB = 1024;
-
-        private static int _LastClientIDAllocated;
+        private static Int32 _LastClientIDAllocated;
 
         protected readonly TcpClient _AttachedSocket;
-        protected readonly int _ClientId;
+        protected readonly Int32 _ClientId;
         protected readonly List<Packet> _PacketsToProcess = new List<Packet>();
         protected readonly List<Packet> _PacketsToSend = new List<Packet>();
         private readonly List<Packet> _TempPacketList = new List<Packet>();
-        protected byte[] _ByteBuffer;
-        protected int _ByteBufferCount;
+        protected Byte[] _ByteBuffer;
+        protected Int32 _ByteBufferCount;
         protected TimeSpan _ClientUpdateInterval = new TimeSpan(0, 0, 0, 0, 5);
-        protected bool _Connected;
+        protected Boolean _Connected;
         protected MemoryStream _CurrentDataStream;
-        protected bool _Disposed;
+        protected Boolean _Disposed;
         protected DateTime _LastClientUpdate = DateTime.Now;
         protected NetworkStream _NetStream;
         protected DateTime _TimeOfConnection;
@@ -48,15 +41,16 @@ namespace Sbatman.Networking.Server
         ///     An instance of a client connection on the server
         /// </summary>
         /// <param name="newSocket"> </param>
-        protected ClientConnection(TcpClient newSocket)
+        /// <param name="bufferSizeInKB">The buffer size in kb for incoming packets</param>
+        protected ClientConnection(TcpClient newSocket, Int32 bufferSizeInKB = 1024)
         {
-            _ByteBuffer = new byte[INTERNAL_BUFFER_KB * 1024];
+            _ByteBuffer = new Byte[bufferSizeInKB * 1024];
             _ClientId = GetNewClientId();
             _TimeOfConnection = DateTime.Now;
             _AttachedSocket = newSocket;
             _Connected = true;
             Packet p = new Packet(CONNECT_PACKET);
-            p.AddInt32(_ClientId);
+            p.Add(_ClientId);
             _PacketsToSend.Add(p);
             OnConnect();
             _UpdateThread = new Thread(Update);
@@ -143,12 +137,12 @@ namespace Sbatman.Networking.Server
         /// </summary>
         /// <param name="maximum">The number upper limit of packets to get in one call, default is 1000</param>
         /// <returns>A list containing the packets that require processing</returns>
-        protected virtual List<Packet> GetOutStandingProcessingPackets(int maximum = 1000)
+        protected virtual List<Packet> GetOutStandingProcessingPackets(Int32 maximum = 1000)
         {
             List<Packet> newList = new List<Packet>();
             lock (_PacketsToProcess)
             {
-                int grabSize = Math.Min(_PacketsToProcess.Count, 1000);
+                Int32 grabSize = Math.Min(_PacketsToProcess.Count, 1000);
                 newList.AddRange(_PacketsToProcess.GetRange(0, grabSize));
                 _PacketsToProcess.RemoveRange(0, grabSize);
             }
@@ -159,7 +153,7 @@ namespace Sbatman.Networking.Server
         ///     Returns true of the client is connected
         /// </summary>
         /// <returns> </returns>
-        public virtual bool IsConnected()
+        public virtual Boolean IsConnected()
         {
             return _Connected;
         }
@@ -176,7 +170,7 @@ namespace Sbatman.Networking.Server
         ///     Returns a count of outstanding packets that need to be processed
         /// </summary>
         /// <returns> </returns>
-        public virtual int GetOutStandingProcessingPacketsCount()
+        public virtual Int32 GetOutStandingProcessingPacketsCount()
         {
             return _PacketsToProcess.Count;
         }
@@ -185,7 +179,7 @@ namespace Sbatman.Networking.Server
         ///     Returns a count of the packets that are pending to be sent
         /// </summary>
         /// <returns> </returns>
-        public virtual int GetOutStandingSendPacketsCount()
+        public virtual Int32 GetOutStandingSendPacketsCount()
         {
             return _PacketsToSend.Count;
         }
@@ -219,16 +213,16 @@ namespace Sbatman.Networking.Server
                     {
                         if (_AttachedSocket.Available > 0)
                         {
-                            byte[] datapulled = new byte[_AttachedSocket.Available];
+                            Byte[] datapulled = new Byte[_AttachedSocket.Available];
                             _AttachedSocket.GetStream().Read(datapulled, 0, datapulled.Length);
                             Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCount, datapulled.Length);
                             _ByteBufferCount += datapulled.Length;
                         }
-                        bool finding = _ByteBufferCount > 11;
+                        Boolean finding = _ByteBufferCount > 11;
                         while (finding)
                         {
-                            bool packetStartPresent = true;
-                            for (int x = 0; x < 4; x++)
+                            Boolean packetStartPresent = true;
+                            for (Int32 x = 0; x < 4; x++)
                             {
                                 if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
                                 packetStartPresent = false;
@@ -236,10 +230,10 @@ namespace Sbatman.Networking.Server
                             }
                             if (packetStartPresent)
                             {
-                                int size = BitConverter.ToInt32(_ByteBuffer, 6);
+                                Int32 size = BitConverter.ToInt32(_ByteBuffer, 6);
                                 if (_ByteBufferCount >= size)
                                 {
-                                    byte[] packet = new byte[size];
+                                    Byte[] packet = new Byte[size];
                                     Array.Copy(_ByteBuffer, 0, packet, 0, size);
                                     Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
                                     _ByteBufferCount -= size;
@@ -252,8 +246,8 @@ namespace Sbatman.Networking.Server
                             }
                             else
                             {
-                                int offset = -1;
-                                for (int x = 0; x < _ByteBufferCount; x++)
+                                Int32 offset = -1;
+                                for (Int32 x = 0; x < _ByteBufferCount; x++)
                                 {
                                     if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
                                 }
@@ -282,7 +276,7 @@ namespace Sbatman.Networking.Server
                     if (_TempPacketList.Count > 0)
                     {
                         _NetStream = new NetworkStream(_AttachedSocket.Client);
-                        foreach (byte[] data in _TempPacketList.Select(p => p.ToByteArray()))
+                        foreach (Byte[] data in _TempPacketList.Select(p => p.ToByteArray()))
                         {
                             _NetStream.Write(data, 0, data.Length);
                         }
@@ -322,7 +316,7 @@ namespace Sbatman.Networking.Server
         ///     Returns whether this Client Connection has been disposed
         /// </summary>
         /// <returns>True if disposed else false</returns>
-        public virtual bool IsDisposed()
+        public virtual Boolean IsDisposed()
         {
             return _Disposed;
         }
@@ -331,7 +325,7 @@ namespace Sbatman.Networking.Server
         ///     Returns the client ID of this client connection
         /// </summary>
         /// <returns>The id of the client connection</returns>
-        private static int GetNewClientId()
+        private static Int32 GetNewClientId()
         {
             _LastClientIDAllocated++;
             return _LastClientIDAllocated;

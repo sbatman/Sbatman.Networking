@@ -27,7 +27,7 @@ namespace Sbatman.Networking.Server
         /// <summary>
         ///     Bool representing whether the server is listening or not
         /// </summary>
-        protected bool _Listening;
+        protected Boolean _Listening;
 
         /// <summary>
         ///     The thread that the connection listening logic is running on
@@ -37,7 +37,7 @@ namespace Sbatman.Networking.Server
         /// <summary>
         ///     Bool representing whether the server is running or not
         /// </summary>
-        protected bool _Running;
+        protected Boolean _Running;
 
         /// <summary>
         ///     The endpoint onwhich the server is reacting to connection requests
@@ -109,7 +109,7 @@ namespace Sbatman.Networking.Server
             newSocket.NoDelay = true;
             lock (_CurrentlyConnectedClients)
             {
-                _CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(_ClientType, new object[] {newSocket}));
+                _CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(_ClientType, new Object[] {newSocket}));
                 if (_Running) return;
                 _Running = true;
                 _UpdateThread = new Thread(UpdateLoop);
@@ -177,7 +177,7 @@ namespace Sbatman.Networking.Server
         ///     Returns true if the the server is listening
         /// </summary>
         /// <returns> </returns>
-        public bool IsListening()
+        public Boolean IsListening()
         {
             return _Listening;
         }
@@ -186,7 +186,7 @@ namespace Sbatman.Networking.Server
         ///     Returns true if the server is running
         /// </summary>
         /// <returns> </returns>
-        public bool IsRunning()
+        public Boolean IsRunning()
         {
             return _Running;
         }

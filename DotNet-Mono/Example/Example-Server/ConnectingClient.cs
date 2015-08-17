@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using Sbatman.Networking;
 using Sbatman.Serialize;
+using System.Collections.Generic;
 
 namespace Example_Server
 {
@@ -42,26 +43,43 @@ namespace Example_Server
                 {
                     case 10:
                         Program.Write(((Int64)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));
-                        Program.Write(((float)packet.GetObjects()[1]).ToString(CultureInfo.InvariantCulture));
+                        Program.Write(((Single)packet.GetObjects()[1]).ToString(CultureInfo.InvariantCulture));
 
-                        byte[] data = ((byte[]) packet.GetObjects()[2]);
+                        Byte[] data = ((Byte[]) packet.GetObjects()[2]);
                         StringBuilder sb = new StringBuilder();
-                        foreach (byte b in data)
+                        foreach (Byte b in data)
                         {
                             sb.Append(b);
+                            sb.Append(',');
+                        }
+                        sb.AppendLine();
+
+                        foreach (Double d in (List<Double>)packet.GetObjects()[3])
+                        {
+                            sb.Append(d);
+                            sb.Append(',');
+                        }
+
+
+                            sb.AppendLine();
+
+                            foreach (Single d in (List<Single>)packet.GetObjects()[4])
+                        {
+                            sb.Append(d);
                             sb.Append(',');
                         }
 
                         Program.Write(sb.ToString());
 
                         Packet response = new Packet(45);
-                        response.AddBytePacket(data);
+                        response.Add(data);
 
                         SendPacket(response);
                         break;
                     case 11:
-                        Program.Write(((bool)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));
-                        Program.Write(((string)packet.GetObjects()[1]).ToString(CultureInfo.InvariantCulture));
+                        Program.Write(((Boolean)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));
+                        Program.Write(((String)packet.GetObjects()[1]).ToString(CultureInfo.InvariantCulture));
+                        Program.Write(((Guid)packet.GetObjects()[2]).ToString());
                         break;
                 }
             }
