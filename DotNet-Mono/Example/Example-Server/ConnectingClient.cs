@@ -79,6 +79,7 @@ namespace Example_Server
                     case 11:
                         Program.Write(((Boolean)packet.GetObjects()[0]).ToString(CultureInfo.InvariantCulture));
                         Program.Write(((String)packet.GetObjects()[1]).ToString(CultureInfo.InvariantCulture));
+                        Program.Write(((Guid)packet.GetObjects()[2]).ToString());
                         break;
                 }
             }
