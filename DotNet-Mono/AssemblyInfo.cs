@@ -8,5 +8,5 @@ using System.Reflection;
 [assembly: AssemblyCopyright("Sbatman.com Copyright © 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("0.13.3.1147")]
-[assembly: AssemblyFileVersion("0.13.3.1147")]
+[assembly: AssemblyVersion("0.13.4.1415")]
+[assembly: AssemblyFileVersion("0.13.4.1415")]
