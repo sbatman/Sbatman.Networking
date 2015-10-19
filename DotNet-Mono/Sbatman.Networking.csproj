@@ -21,7 +21,7 @@
     <AssemblyInfoVersionSettings>None.IncrementOnDemandWithReset.Increment.TimeStamp</AssemblyInfoVersionSettings>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">.\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <NuGetPackageImportStamp>e14a4260</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>5cd4296c</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,21 +51,25 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Sbatman.Serialize, Version=0.6.0.1824, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Sbatman.Serialize.0.6.0.1824\lib\portable-net45+win+wpa81+wp80\Sbatman.Serialize.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.IO.Compression" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Client\BaseClient.cs" />
     <Compile Include="Server\ClientConnection.cs" />
     <Compile Include="Server\BaseServer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ProjectReference Include="..\..\LZ4PCL\LZ4PCL.csproj">
+      <Project>{3b573f7c-535e-4a1b-95bd-50dd8c96ad5f}</Project>
+      <Name>LZ4PCL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Sbatman.Serialize\Sbatman.Serialize\Sbatman.Serialize.csproj">
+      <Project>{6af99f9b-3485-48ab-b7fa-cea0b7699bf0}</Project>
+      <Name>Sbatman.Serialize</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System">
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
@@ -80,12 +84,4 @@
     </MonoDevelop>
   </ProjectExtensions>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
-  </Target>
-  <Import Project="packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
 </Project>
