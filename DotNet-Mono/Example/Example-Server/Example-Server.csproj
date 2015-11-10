@@ -35,8 +35,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Sbatman.Serialize, Version=0.7.0.1142, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Sbatman.Serialize.0.7.0.1142\lib\portable-net45+win+wpa81+wp80\Sbatman.Serialize.dll</HintPath>
+    <Reference Include="LZ4PCL, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\LZ4PCL.1.0.0\lib\portable-net4+netcore45+wpa81+MonoAndroid1+MonoTouch1\LZ4PCL.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Sbatman.Serialize, Version=0.7.7.1558, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Sbatman.Serialize.0.7.7.1558\lib\portable-net45+win+wpa81\Sbatman.Serialize.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
