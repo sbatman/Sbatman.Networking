@@ -1,0 +1,26 @@
+stages:
+  - build
+  - nuget
+
+build:
+  stage: build
+  script:
+  - cd DotNet-Mono
+  - echo "Restoring NuGet Packages..."
+  - nuget restore "Sbatman.Networking.sln" -source "https://www.nuget.org/api/v2/"
+  - echo "Release build..."
+  - '"C:/Program Files (x86)/MSBuild/14.0/Bin/msbuild.exe" /consoleloggerparameters:ErrorsOnly /maxcpucount /nologo /property:Configuration=Release /verbosity:quiet "Sbatman.Networking.sln"'
+  - echo "Debug build..."
+  - '"C:/Program Files (x86)/MSBuild/14.0/Bin/msbuild.exe" /consoleloggerparameters:ErrorsOnly /maxcpucount /nologo /property:Configuration=Debug /verbosity:quiet "Sbatman.Networking.sln"'
+  artifacts:
+    paths:
+    - DotNet-Mono/bin/Release
+    - DotNet-Mono/bin/Debug
+
+nuget:
+  stage: nuget
+  script:
+  - nuget pack "DotNet-Mono/Sbatman.Networking.csproj"
+  - nuget push *
+  only:
+  - tags

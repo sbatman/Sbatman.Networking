@@ -55,8 +55,8 @@
       <HintPath>packages\LZ4PCL.1.0.0\lib\portable-net4+netcore45+wpa81+MonoAndroid1+MonoTouch1\LZ4PCL.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Sbatman.Serialize, Version=0.7.7.1558, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Sbatman.Serialize.0.7.7.1558\lib\portable-net45+win+wpa81\Sbatman.Serialize.dll</HintPath>
+    <Reference Include="Sbatman.Serialize, Version=0.8.0.2328, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Sbatman.Serialize.0.8.0.2328\lib\portable-net45+win+wpa81+MonoAndroid10+xamarinios10+MonoTouch10\Sbatman.Serialize.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -83,11 +83,4 @@
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-  </Target>
 </Project>
