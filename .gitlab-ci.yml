@@ -7,7 +7,7 @@ build:
   script:
   - cd DotNet-Mono
   - echo "Restoring NuGet Packages..."
-  - nuget restore "Sbatman.Networking.sln" -source "https://www.nuget.org/api/v2/"
+  - '".nuget/nuget.exe" restore "Sbatman.Networking.sln" -source "https://www.nuget.org/api/v2/"'
   - echo "Release build..."
   - '"C:/Program Files (x86)/MSBuild/14.0/Bin/msbuild.exe" /consoleloggerparameters:ErrorsOnly /maxcpucount /nologo /property:Configuration=Release /verbosity:quiet "Sbatman.Networking.sln"'
   - echo "Debug build..."
@@ -20,7 +20,8 @@ build:
 nuget:
   stage: nuget
   script:
-  - nuget pack "DotNet-Mono/Sbatman.Networking.csproj"
-  - nuget push *
+  - cd DotNet-Mono
+  - '".nuget/nuget.exe" pack "Sbatman.Networking.csproj"'
+  - '".nuget/nuget.exe" push *'
   only:
   - tags
