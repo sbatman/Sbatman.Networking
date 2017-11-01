@@ -39,8 +39,8 @@
       <HintPath>..\..\packages\LZ4PCL.1.0.0\lib\portable-net4+netcore45+wpa81+MonoAndroid1+MonoTouch1\LZ4PCL.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Sbatman.Serialize, Version=0.8.0.2328, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Sbatman.Serialize.0.8.0.2328\lib\portable-net45+win+wpa81+MonoAndroid10+xamarinios10+MonoTouch10\Sbatman.Serialize.dll</HintPath>
+    <Reference Include="Sbatman.Serialize, Version=0.9.0.45, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Sbatman.Serialize.0.9.0.45\lib\portable-net45+win+wpa81+xamarinios10\Sbatman.Serialize.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
