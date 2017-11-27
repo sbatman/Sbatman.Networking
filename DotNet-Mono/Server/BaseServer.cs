@@ -109,7 +109,8 @@ namespace Sbatman.Networking.Server
             newSocket.NoDelay = true;
             lock (_CurrentlyConnectedClients)
             {
-                _CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(_ClientType, new Object[] {newSocket}));
+                newSocket.NoDelay = true;
+                _CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(_ClientType, new Object[] {this,newSocket}));
                 if (_Running) return;
                 _Running = true;
                 _UpdateThread = new Thread(UpdateLoop);

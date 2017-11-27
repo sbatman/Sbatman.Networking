@@ -36,14 +36,15 @@ namespace Sbatman.Networking.Server
         protected NetworkStream _NetStream;
         protected DateTime _TimeOfConnection;
         protected Thread _UpdateThread;
-
+        protected BaseServer Server;
         /// <summary>
         ///     An instance of a client connection on the server
         /// </summary>
         /// <param name="newSocket"> </param>
         /// <param name="bufferSizeInKB">The buffer size in kb for incoming packets</param>
-        protected ClientConnection(TcpClient newSocket, Int32 bufferSizeInKB = 1024)
+        protected ClientConnection(BaseServer server,TcpClient newSocket, Int32 bufferSizeInKB = 1024)
         {
+            Server = server;
             _ByteBuffer = new Byte[bufferSizeInKB * 1024];
             _ClientId = GetNewClientId();
             _TimeOfConnection = DateTime.Now;
