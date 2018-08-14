@@ -94,6 +94,7 @@ namespace Sbatman.Networking.Server
 
             while (_Listening)
             {
+                if (_TcpListener == null) break;
                 while (_TcpListener.Pending()) HandelNewConnection(_TcpListener.AcceptTcpClient());
                 Thread.Sleep(16);
             }
@@ -134,6 +135,7 @@ namespace Sbatman.Networking.Server
 
         public void Dipose()
         {
+            _Listening = false;
             _Running = false;
         }
 
@@ -156,7 +158,7 @@ namespace Sbatman.Networking.Server
                     foreach (ClientConnection c in d.Where(i => i.IsDisposed())) _CurrentlyConnectedClients.Remove(c);
                     d.Clear();
                 }
-                Thread.Sleep(50);
+                Thread.Sleep(16);
             }
             //Time to dispose
             lock (_CurrentlyConnectedClients)
