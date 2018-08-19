@@ -254,10 +254,7 @@ namespace Sbatman.Networking.Client
         ///     Returns true of your connected to the server
         /// </summary>
         /// <returns> </returns>
-        public virtual Boolean IsConnected()
-        {
-            return _ClientSocket != null && _ClientSocket.Connected;
-        }
+        public virtual Boolean Connected => _ClientSocket != null && _ClientSocket.Connected;
 
         /// <summary>
         ///     Disconnect from the server
