@@ -42,7 +42,7 @@ namespace Sbatman.Networking.Server
         /// </summary>
         /// <param name="newSocket"> </param>
         /// <param name="bufferSizeInKB">The buffer size in kb for incoming packets</param>
-        protected ClientConnection(BaseServer server,TcpClient newSocket, Int32 bufferSizeInKB = 1024)
+        protected ClientConnection(BaseServer server, TcpClient newSocket, Int32 bufferSizeInKB = 1024)
         {
             Server = server;
             _ByteBuffer = new Byte[bufferSizeInKB * 1024];
@@ -205,11 +205,12 @@ namespace Sbatman.Networking.Server
 
         private void Update()
         {
-            try
+            while (_Connected)
             {
-                while (_Connected)
+                try
                 {
                     _Connected = _AttachedSocket.Client.Connected;
+                    if (!_Connected) break;
                     lock (_PacketsToProcess)
                     {
                         if (_AttachedSocket.Available > 0)
@@ -219,6 +220,7 @@ namespace Sbatman.Networking.Server
                             Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCount, datapulled.Length);
                             _ByteBufferCount += datapulled.Length;
                         }
+
                         Boolean finding = _ByteBufferCount > 11;
                         while (finding)
                         {
@@ -229,6 +231,7 @@ namespace Sbatman.Networking.Server
                                 packetStartPresent = false;
                                 break;
                             }
+
                             if (packetStartPresent)
                             {
                                 Int32 size = BitConverter.ToInt32(_ByteBuffer, 6);
@@ -252,6 +255,7 @@ namespace Sbatman.Networking.Server
                                 {
                                     if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
                                 }
+
                                 if (offset != -1)
                                 {
                                     Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCount - offset);
@@ -262,6 +266,7 @@ namespace Sbatman.Networking.Server
                                     _ByteBufferCount = 0;
                                 }
                             }
+
                             if (_ByteBufferCount < 12) finding = false;
                         }
                     }
@@ -274,6 +279,7 @@ namespace Sbatman.Networking.Server
                             _PacketsToSend.Clear();
                         }
                     }
+
                     if (_TempPacketList.Count > 0)
                     {
                         _NetStream = new NetworkStream(_AttachedSocket.Client);
@@ -281,36 +287,40 @@ namespace Sbatman.Networking.Server
                         {
                             _NetStream.Write(data, 0, data.Length);
                         }
+
                         _NetStream.Close();
                         _NetStream.Dispose();
                         _NetStream = null;
                         foreach (Packet p in _TempPacketList) p.Dispose();
                     }
+
                     _TempPacketList.Clear();
                     if (DateTime.Now - _LastClientUpdate > _ClientUpdateInterval)
                     {
                         _LastClientUpdate += _ClientUpdateInterval;
                         ClientUpdateLogic();
                     }
+
                     Thread.Sleep(4);
                 }
-
-                if (_AttachedSocket != null)
+                catch (Exception e)
                 {
-                    if (_AttachedSocket.Connected)
-                    {
-                        _AttachedSocket.Close();
-                        _AttachedSocket.Client.Dispose();
-                    }
+                    HandelException(e);
                 }
-                _Connected = false;
-                OnDisconnect();
-                Dispose();
             }
-            catch (Exception e)
+
+            if (_AttachedSocket != null)
             {
-                HandelException(e);
+                if (_AttachedSocket.Connected)
+                {
+                    _AttachedSocket.Close();
+                    _AttachedSocket.Client.Dispose();
+                }
             }
+            _Connected = false;
+            OnDisconnect();
+            Dispose();
+
         }
 
         /// <summary>
