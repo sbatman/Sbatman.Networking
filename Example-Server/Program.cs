@@ -12,7 +12,7 @@ namespace Example_Server
         {
             BaseServer server = new BaseServer();//Create an instance of the server
 
-            //Prepare to Listen for connections on port 6789 arriving on all addresses belogning to this machine,
+            //Prepare to Listen for connections on port 6789 arriving on all addresses belonging to this machine,
             //If there is a connection accept it and create a new instance of ConnectedClient to pass it to.
             server.Init(new IPEndPoint(IPAddress.Any, 6789), typeof(ConnectingClient)); 
 

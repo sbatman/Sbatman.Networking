@@ -12,7 +12,7 @@ using System.Threading;
 namespace Sbatman.Networking.Client
 {
     /// <summary>
-    ///     A Base class of a client connection. This can be used to connect to the specified server. All message handeling is
+    ///     A Base class of a client connection. This can be used to connect to the specified server. All message handling is
     ///     performed ASynchronously
     /// </summary>
     public class BaseClient
@@ -33,7 +33,7 @@ namespace Sbatman.Networking.Client
         protected Int32 _BufferSize;
 
         /// <summary>
-        ///     Buffer of butes used to collect incomming packets and putt hem together
+        ///     Buffer of bytes used to collect incoming packets and putt hem together
         /// </summary>
         protected Byte[] _ByteBuffer;
 
@@ -48,7 +48,7 @@ namespace Sbatman.Networking.Client
         protected TcpClient _ClientSocket = new TcpClient();
 
         /// <summary>
-        ///     Bool identifing if the client is currently connected or not
+        ///     Bool identifying if the client is currently connected or not
         /// </summary>
         protected Boolean _Connected;
 
@@ -68,37 +68,37 @@ namespace Sbatman.Networking.Client
         protected Int32 _PacketCheckInterval = 2;
 
         /// <summary>
-        ///     The thread used for handeling packets
+        ///     The thread used for handling packets
         /// </summary>
         protected Thread _PacketHandel;
 
-        protected Action<string> _LogFunction;
+        protected Action<String> _LogFunction;
 
         /// <summary>
         /// Creates an instance of BaseClient, Call connect to establish a connection.
         /// </summary>
         /// <param name="logFunction">A function to which the code can log errors or warnings S(left null if not required)</param>
-        public BaseClient(Action<string> logFunction = null)
+        public BaseClient(Action<String> logFunction = null)
         {
             _LogFunction = logFunction;
         }
 
         /// <summary>
-        ///     Initialise a connection to the speicified adress and port
+        ///     Initialise a connection to the specified address and port
         /// </summary>
-        /// <param name="serverAddress"> Adress of server to attempt to connect to </param>
+        /// <param name="serverAddress"> Address of server to attempt to connect to </param>
         /// <param name="port">The port over which to connect</param>
-        /// <param name="bufferSizeInKb">The size in Kilobytes of the internal store for recieved but unprocessed packets, packets recieved close to or larger than this size may not be processed</param>
+        /// <param name="bufferSizeInKb">The size in Kilobytes of the internal store for received but unprocessed packets, packets received close to or larger than this size may not be processed</param>
         public Boolean Connect(String serverAddress, Int32 port, Int32 bufferSizeInKb = 1024)
         {
             return Connect(new IPEndPoint(IPAddress.Parse(serverAddress), port), bufferSizeInKb);
         }
 
         /// <summary>
-        ///     Initialise a connection to the speicified endpoint
+        ///     Initialise a connection to the specified endpoint
         /// </summary>
         /// <param name="ipEndPoint">The endpoint to which a connection should be attempted</param>
-        /// <param name="bufferSizeInKb">The size in Kilobytes of the internal store for recieved but unprocessed packets, packets recieved close to or larger than this size may not be processed</param>
+        /// <param name="bufferSizeInKb">The size in Kilobytes of the internal store for received but unprocessed packets, packets received close to or larger than this size may not be processed</param>
         public Boolean Connect(IPEndPoint ipEndPoint, Int32 bufferSizeInKb = 1024)
         {
             _BufferSize = bufferSizeInKb * 1024;
@@ -138,7 +138,7 @@ namespace Sbatman.Networking.Client
             }
             catch
             {
-                if (_LogFunction != null) _LogFunction(string.Format("NerfCorev2:Networking - Failure to connect to {0} on port {1}", ipEndPoint.Address, ipEndPoint.Port));
+                _LogFunction?.Invoke($"Sbatman:Networking - Failure to connect to {ipEndPoint.Address} on port {ipEndPoint.Port}");
             }
 
             return false;
@@ -146,7 +146,7 @@ namespace Sbatman.Networking.Client
 
 
         /// <summary>
-        ///     Changes the number of milliseconds between packet checks (this shouldnt be higer then 4ms for timely responces, or
+        ///     Changes the number of milliseconds between packet checks (this shouldn't be higher then 4ms for timely responses, or
         ///     lower then 1ms to prevent high cpu usage
         /// </summary>
         /// <param name="timeBetweenChecksInMs"> Number of ms between checks </param>
@@ -157,8 +157,8 @@ namespace Sbatman.Networking.Client
         }
 
         /// <summary>
-        /// Returns a bool representing whether no delay has been foced to true. This disables an underlying packet bunching logic
-        /// decreasing avaliable bandwidth in exchange for quicker response times.
+        /// Returns a bool representing whether no delay has been forced to true. This disables an underlying packet bunching logic
+        /// decreasing available bandwidth in exchange for quicker response times.
         /// </summary>
         /// <returns></returns>
         public Boolean GetForceNoDelay()
@@ -167,8 +167,8 @@ namespace Sbatman.Networking.Client
         }
 
         /// <summary>
-        /// sets whether no delay has been foced to true. This disables an underlying packet bunching logic
-        /// decreasing avaliable bandwidth in exchange for quicker response times. Default = true
+        /// sets whether no delay has been forced to true. This disables an underlying packet bunching logic
+        /// decreasing available bandwidth in exchange for quicker response times. Default = true
         /// </summary>
         /// <param name="setting">True for speed over bandwidth, false for bandwidth over speed</param>
         public void SetForceNoDelay(Boolean setting)
@@ -177,7 +177,7 @@ namespace Sbatman.Networking.Client
         }
 
         /// <summary>
-        ///     Retruns a list of all the packs that have come in and need to be processed. This clears the list.
+        ///     Returns a list of all the packs that have come in and need to be processed. This clears the list.
         /// </summary>
         /// <returns> </returns>
         public Packet[] GetPacketsToProcess()
@@ -196,7 +196,7 @@ namespace Sbatman.Networking.Client
         }
 
         /// <summary>
-        ///     Injects packets into the process list as though they had been recieved over the network, great for debugging
+        ///     Injects packets into the process list as though they had been received over the network, great for debugging
         ///     and for local server/client combo's
         /// </summary>
         /// <param name="p">The packet to inject</param>
@@ -209,25 +209,31 @@ namespace Sbatman.Networking.Client
         }
 
         /// <summary>
-        ///     Retruns an int containing the number of waiting prackets
+        ///     Returns an int containing the number of waiting packets
         /// </summary>
         /// <returns> </returns>
         public Int32 GetPacketsToProcessCount()
         {
-            return _PacketsToProcess.Count;
+            lock (_PacketsToProcess)
+            {
+                return _PacketsToProcess.Count;
+            }
         }
 
         /// <summary>
-        ///     Retruns an int containing the number of packets that have not yet been sent
+        ///     Returns an int containing the number of packets that have not yet been sent
         /// </summary>
         /// <returns> </returns>
         public Int32 GetPacketsToSendCount()
         {
-            return _PacketsToSend.Count;
+            lock (_PacketsToSend)
+            {
+                return _PacketsToSend.Count;
+            }
         }
 
         /// <summary>
-        ///     Sends a packet to the connected server, and diposes the packet once sent.
+        ///     Sends a packet to the connected server, and disposes the packet once sent.
         /// </summary>
         /// <param name="packet"> Packet to send </param>
         public virtual void SendPacket(Packet packet)
@@ -254,10 +260,7 @@ namespace Sbatman.Networking.Client
         ///     Returns true of your connected to the server
         /// </summary>
         /// <returns> </returns>
-        public virtual Boolean IsConnected()
-        {
-            return _ClientSocket != null && _ClientSocket.Connected;
-        }
+        public virtual Boolean Connected => _ClientSocket != null && _ClientSocket.Connected;
 
         /// <summary>
         ///     Disconnect from the server
@@ -273,19 +276,19 @@ namespace Sbatman.Networking.Client
             {
                 while (_Connected)
                 {
-                    List<Packet> templist = new List<Packet>();
+                    List<Packet> tempList = new List<Packet>();
                     lock (_PacketsToSend)
                     {
-                        templist.AddRange(_PacketsToSend);
+                        tempList.AddRange(_PacketsToSend);
                         _PacketsToSend.Clear();
                     }
 
-                    if (templist.Count > 0)
+                    if (tempList.Count > 0)
                     {
                         lock (_ClientSocket)
                         {
                             NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
-                            foreach (Packet packet in templist)
+                            foreach (Packet packet in tempList)
                             {
                                 Byte[] data = packet.ToByteArray();
                                 netStream.Write(data, 0, data.Length);
@@ -294,28 +297,28 @@ namespace Sbatman.Networking.Client
                             netStream.Close();
                         }
                     }
-                    templist.Clear();
+                    tempList.Clear();
                     lock (_ClientSocket)
                     {
                         if (_ClientSocket.Available > 0)
                         {
-                            Byte[] datapulled = new Byte[_ClientSocket.Available];
-                            _ClientSocket.GetStream().Read(datapulled, 0, datapulled.Length);
-                            Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCount, datapulled.Length);
-                            _ByteBufferCount += datapulled.Length;
+                            Byte[] dataPulled = new Byte[_ClientSocket.Available];
+                            _ClientSocket.GetStream().Read(dataPulled, 0, dataPulled.Length);
+                            Array.Copy(dataPulled, 0, _ByteBuffer, _ByteBufferCount, dataPulled.Length);
+                            _ByteBufferCount += dataPulled.Length;
                         }
                     }
                     Boolean finding = _ByteBufferCount > 11;
                     while (finding)
                     {
-                        Boolean packerstartpresent = true;
+                        Boolean packetStartPresent = true;
                         for (Int32 x = 0; x < 4; x++)
                         {
                             if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
-                            packerstartpresent = false;
+                            packetStartPresent = false;
                             break;
                         }
-                        if (packerstartpresent)
+                        if (packetStartPresent)
                         {
                             Int32 size = BitConverter.ToInt32(_ByteBuffer, 6);
                             if (_ByteBufferCount >= size)
@@ -356,9 +359,9 @@ namespace Sbatman.Networking.Client
                     }
                     lock (_PacketsToProcess)
                     {
-                        foreach (Packet p in templist) _PacketsToProcess.Enqueue(p);
+                        foreach (Packet p in tempList) _PacketsToProcess.Enqueue(p);
                     }
-                    templist.Clear();
+                    tempList.Clear();
                     Thread.Sleep(_PacketCheckInterval);
                 }
             }
@@ -377,7 +380,7 @@ namespace Sbatman.Networking.Client
         }
 
         /// <summary>
-        ///     Returns true if an internal error has occured. This can be retrived with GetError.
+        ///     Returns true if an internal error has occured. This can be retrieved with GetError.
         /// </summary>
         /// <returns></returns>
         public Boolean HasErrored()
@@ -396,7 +399,7 @@ namespace Sbatman.Networking.Client
         }
 
         /// <summary>
-        ///     Retruns the internal TCP socket used by this client. Lock the TCPClient when in use to maintain thread safe
+        ///     Returns the internal TCP socket used by this client. Lock the TCPClient when in use to maintain thread safe
         ///     operations
         /// </summary>
         /// <returns></returns>

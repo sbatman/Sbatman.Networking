@@ -12,10 +12,10 @@ using System.Threading;
 
 namespace Sbatman.Networking.Server
 {
-    public class BaseServer
+    public class BaseServer : IDisposable
     {
         /// <summary>
-        ///     The type used to generate a clientconnection instance
+        ///     The type used to generate a clientConnection instance
         /// </summary>
         protected Type _ClientType;
 
@@ -40,7 +40,7 @@ namespace Sbatman.Networking.Server
         protected Boolean _Running;
 
         /// <summary>
-        ///     The endpoint onwhich the server is reacting to connection requests
+        ///     The endpoint on which the server is reacting to connection requests
         /// </summary>
         protected IPEndPoint _TCPLocalEndPoint;
 
@@ -55,9 +55,9 @@ namespace Sbatman.Networking.Server
         protected Thread _UpdateThread;
 
         /// <summary>
-        ///     Required to initalise the Server system
+        ///     Required to initialise the Server system
         /// </summary>
-        /// <param name="tcpLocalEndPoint"> The local point ther server should listen for connections on </param>
+        /// <param name="tcpLocalEndPoint"> The local point the server should listen for connections on </param>
         /// <param name="clientType"> A type of type Client that will be instantiated for each connection </param>
         public void Init(IPEndPoint tcpLocalEndPoint, Type clientType)
         {
@@ -94,6 +94,7 @@ namespace Sbatman.Networking.Server
 
             while (_Listening)
             {
+                if (_TcpListener == null) break;
                 while (_TcpListener.Pending()) HandelNewConnection(_TcpListener.AcceptTcpClient());
                 Thread.Sleep(16);
             }
@@ -101,15 +102,16 @@ namespace Sbatman.Networking.Server
         }
 
         /// <summary>
-        ///     This Handels the new connections
+        ///     This Handles the new connections
         /// </summary>
-        /// <param name="newSocket">The socket the connectionw as made on</param>
+        /// <param name="newSocket">The socket the connection was made on</param>
         private void HandelNewConnection(TcpClient newSocket)
         {
             newSocket.NoDelay = true;
             lock (_CurrentlyConnectedClients)
             {
-                _CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(_ClientType, new Object[] {newSocket}));
+                newSocket.NoDelay = true;
+                _CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(_ClientType, this, newSocket));
                 if (_Running) return;
                 _Running = true;
                 _UpdateThread = new Thread(UpdateLoop);
@@ -120,7 +122,7 @@ namespace Sbatman.Networking.Server
         /// <summary>
         ///     Sends a packet to all connected clients and then disposes of the packet
         /// </summary>
-        /// <param name="p">The packet to send, Withh dispose once sent</param>
+        /// <param name="p">The packet to send, With dispose once sent</param>
         public void SendToAll(Packet p)
         {
             List<ClientConnection> d = new List<ClientConnection>();
@@ -131,8 +133,9 @@ namespace Sbatman.Networking.Server
             p.Dispose();
         }
 
-        public void Dipose()
+        public void Dispose()
         {
+            _Listening = false;
             _Running = false;
         }
 
@@ -155,7 +158,7 @@ namespace Sbatman.Networking.Server
                     foreach (ClientConnection c in d.Where(i => i.IsDisposed())) _CurrentlyConnectedClients.Remove(c);
                     d.Clear();
                 }
-                Thread.Sleep(50);
+                Thread.Sleep(16);
             }
             //Time to dispose
             lock (_CurrentlyConnectedClients)
