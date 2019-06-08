@@ -36,16 +36,18 @@ namespace Sbatman.Networking.Server
         protected NetworkStream _NetStream;
         protected DateTime _TimeOfConnection;
         protected Thread _UpdateThread;
-        protected BaseServer Server;
+        protected BaseServer _Server;
+
         /// <summary>
         ///     An instance of a client connection on the server
         /// </summary>
+        /// <param name="server">The Server</param>
         /// <param name="newSocket"> </param>
-        /// <param name="bufferSizeInKB">The buffer size in kb for incoming packets</param>
-        protected ClientConnection(BaseServer server, TcpClient newSocket, Int32 bufferSizeInKB = 1024)
+        /// <param name="bufferSizeInKb">The buffer size in kb for incoming packets</param>
+        protected ClientConnection(BaseServer server, TcpClient newSocket, Int32 bufferSizeInKb = 1024)
         {
-            Server = server;
-            _ByteBuffer = new Byte[bufferSizeInKB * 1024];
+            _Server = server;
+            _ByteBuffer = new Byte[bufferSizeInKb * 1024];
             _ClientId = GetNewClientId();
             _TimeOfConnection = DateTime.Now;
             _AttachedSocket = newSocket;
@@ -133,7 +135,7 @@ namespace Sbatman.Networking.Server
         }
 
         /// <summary>
-        ///     Returns all the currently outstanding packets that need processing (with a defualt maximum of 1000)
+        ///     Returns all the currently outstanding packets that need processing (with a default maximum of 1000)
         ///     They are removed from the processing queue when this function returns
         /// </summary>
         /// <param name="maximum">The number upper limit of packets to get in one call, default is 1000</param>
@@ -182,11 +184,14 @@ namespace Sbatman.Networking.Server
         /// <returns> </returns>
         public virtual Int32 GetOutStandingSendPacketsCount()
         {
-            return _PacketsToSend.Count;
+            lock (_PacketsToSend)
+            {
+                return _PacketsToSend.Count;
+            }
         }
 
         /// <summary>
-        ///     Returns a DateTime outligning when
+        ///     Returns a DateTime outlining when
         /// </summary>
         /// <returns> </returns>
         public virtual DateTime GetTimeOfConnection()
@@ -215,10 +220,10 @@ namespace Sbatman.Networking.Server
                     {
                         if (_AttachedSocket.Available > 0)
                         {
-                            Byte[] datapulled = new Byte[_AttachedSocket.Available];
-                            _AttachedSocket.GetStream().Read(datapulled, 0, datapulled.Length);
-                            Array.Copy(datapulled, 0, _ByteBuffer, _ByteBufferCount, datapulled.Length);
-                            _ByteBufferCount += datapulled.Length;
+                            Byte[] dataPulled = new Byte[_AttachedSocket.Available];
+                            _AttachedSocket.GetStream().Read(dataPulled, 0, dataPulled.Length);
+                            Array.Copy(dataPulled, 0, _ByteBuffer, _ByteBufferCount, dataPulled.Length);
+                            _ByteBufferCount += dataPulled.Length;
                         }
 
                         Boolean finding = _ByteBufferCount > 11;

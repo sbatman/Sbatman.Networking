@@ -2,20 +2,19 @@
 using System.Globalization;
 using System.Net.Sockets;
 using System.Text;
-using Sbatman.Networking;
 using Sbatman.Serialize;
 using System.Collections.Generic;
+using Sbatman.Networking.Server;
 
 namespace Example_Server
 {
-    class ConnectingClient : Sbatman.Networking.Server.ClientConnection
+    class ConnectingClient : ClientConnection
     {
         /// <summary>
         /// Created by the server when a new client is connecting
         /// </summary>
-        /// <param name="client"></param>
-        public ConnectingClient(TcpClient client)
-            : base(client)
+        public ConnectingClient(BaseServer server, TcpClient newSocket)
+            : base(server, newSocket)
         {
 
         }
@@ -28,12 +27,12 @@ namespace Example_Server
 
         protected override void OnDisconnect()
         {
-            //The client has either activly disconnected or has timedout
+            //The client has either actively disconnected or has timeout
             Program.Write("Client Disconnected");
         }
 
         /// <summary>
-        /// This is run on a seperate thread at a given interval, its useful for handeling incoming packets
+        /// This is run on a separate thread at a given interval, its useful for handling incoming packets
         /// </summary>
         protected override void ClientUpdateLogic()
         {
@@ -85,7 +84,7 @@ namespace Example_Server
             }
         }
 
-        protected override void HandelException(System.Exception e)
+        protected override void HandelException(Exception e)
         {
             
         }

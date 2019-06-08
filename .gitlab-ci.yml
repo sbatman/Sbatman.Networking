@@ -1,27 +1,32 @@
+variables:
+  DOCKER_DRIVER: overlay2
+
 stages:
   - build
-  - nuget
+  - publish
 
 build:
+  image: microsoft/dotnet:latest
   stage: build
   script:
-  - cd DotNet-Mono
-  - echo "Restoring NuGet Packages..."
-  - '".nuget/nuget.exe" restore "Sbatman.Networking.sln" -source "https://www.nuget.org/api/v2/"'
-  - echo "Release build..."
-  - '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/MSBuild/15.0/Bin/msbuild.exe" /consoleloggerparameters:ErrorsOnly /maxcpucount /nologo /property:Configuration=Release /verbosity:quiet "Sbatman.Networking.sln"'
-  - echo "Debug build..."
-  - '"C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/MSBuild/15.0/Bin/msbuild.exe" /consoleloggerparameters:ErrorsOnly /maxcpucount /nologo /property:Configuration=Debug /verbosity:quiet "Sbatman.Networking.sln"'
+  - cd Sbatman.Networking
+  - "dotnet build -c release"
   artifacts:
     paths:
-    - DotNet-Mono/bin/Release
-    - DotNet-Mono/bin/Debug
+    - Sbatman.Networking/bin/Release
+    - Sbatman.Networking/bin/Debug
 
 nuget:
-  stage: nuget
+  image: microsoft/dotnet:latest
+  stage: publish
   script:
-  - cd DotNet-Mono
-  - '".nuget/nuget.exe" pack "Sbatman.Networking.csproj"'
-  - '".nuget/nuget.exe" push *'
+  - cd Sbatman.Networking
+  - "dotnet pack -c release"
+  - cd bin/release/
+  - "dotnet nuget push *.nupkg -k $NUGETKEY -s https://api.nuget.org/v3/index.json"
+  artifacts:
+    paths:
+    - Sbatman.Networking/bin/Release
+    - Sbatman.Networking/bin/Debug
   only:
-  - tags
+  - master

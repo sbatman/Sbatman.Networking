@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading;
-using Sbatman.Networking;
+using System.Collections.Generic;
 using Sbatman.Networking.Client;
 using Sbatman.Serialize;
-using System.Collections.Generic;
 
 namespace Example_Client
 {
@@ -13,7 +12,7 @@ namespace Example_Client
         {
             BaseClient client = new BaseClient();   //Create an instance of the client used to connect to the server
             client.Connect("127.0.0.1", 6789);      //Connect to the server using the ip and port provided
-            while (client.IsConnected())            //While we are connected to the server
+            while (client.Connected)            //While we are connected to the server
             {
                 Packet p1 = new Packet(10);         //Create an empty packet of type 10
                 p1.Add(DateTime.Now.Ticks);         //Add to the packet a long, in this case the current time in Ticks
