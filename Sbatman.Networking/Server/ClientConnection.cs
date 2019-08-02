@@ -88,11 +88,7 @@ namespace Sbatman.Networking.Server
             }
             _PacketsToProcess.Clear();
             _PacketsToSend.Clear();
-            if (_UpdateThread != null)
-            {
-                _UpdateThread.Abort();
-                _UpdateThread = null;
-            }
+            _UpdateThread = null;
         }
 
         /// <summary>

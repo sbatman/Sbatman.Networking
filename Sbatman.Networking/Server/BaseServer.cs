@@ -127,7 +127,12 @@ namespace Sbatman.Networking.Server
         {
             List<ClientConnection> d = new List<ClientConnection>();
             lock (_CurrentlyConnectedClients) d.AddRange(_CurrentlyConnectedClients);
-            foreach (ClientConnection c in d) c.SendPacket(p.Copy());
+
+            foreach (ClientConnection c in d)
+            {
+	            if (c == null || p == null) continue;
+	            c.SendPacket(p.Copy());
+            }
 
             d.Clear();
             p.Dispose();
@@ -155,10 +160,10 @@ namespace Sbatman.Networking.Server
                         break;
                     }
                     d.AddRange(_CurrentlyConnectedClients);
-                    foreach (ClientConnection c in d.Where(i => i.Disposed)) _CurrentlyConnectedClients.Remove(c);
+                    foreach (ClientConnection c in d.Where(i => i==null ||i.Disposed)) _CurrentlyConnectedClients.Remove(c);
                     d.Clear();
                 }
-                Thread.Sleep(16);
+                Thread.Sleep(2);
             }
             //Time to dispose
             lock (_CurrentlyConnectedClients)
