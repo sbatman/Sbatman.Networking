@@ -37,6 +37,7 @@ namespace Sbatman.Networking.Server
         protected DateTime _TimeOfConnection;
         protected Thread _UpdateThread;
         protected BaseServer _Server;
+        protected ReaderWriterLockSlim _Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
         /// <summary>
         ///     An instance of a client connection on the server
@@ -121,7 +122,9 @@ namespace Sbatman.Networking.Server
         /// <param name="packet"> Packet to send </param>
         public virtual void SendPacket(Packet packet)
         {
-            lock (_PacketsToSend) _PacketsToSend.Add(packet);
+            _Lock.EnterWriteLock();
+            _PacketsToSend.Add(packet);
+            _Lock.ExitWriteLock();
         }
 
         /// <summary>
@@ -130,7 +133,10 @@ namespace Sbatman.Networking.Server
         /// <param name="packets"> List of packets that are to be sent </param>
         public virtual void SendPackets(List<Packet> packets)
         {
-            lock (_PacketsToSend) _PacketsToSend.AddRange(packets);
+            _Lock.EnterWriteLock();
+            _PacketsToSend.AddRange(packets);
+            _Lock.ExitWriteLock();
+
             packets.Clear();
         }
 
@@ -140,15 +146,18 @@ namespace Sbatman.Networking.Server
         /// </summary>
         /// <param name="maximum">The number upper limit of packets to get in one call, default is 1000</param>
         /// <returns>A list containing the packets that require processing</returns>
-        protected virtual List<Packet> GetOutStandingProcessingPackets(Int32 maximum = 1000)
+        protected virtual List<Packet> GetUnprocessedPackets(Int32 maximum = 1000)
         {
             List<Packet> newList = new List<Packet>();
-            lock (_PacketsToProcess)
-            {
-                Int32 grabSize = Math.Min(_PacketsToProcess.Count, 1000);
-                newList.AddRange(_PacketsToProcess.GetRange(0, grabSize));
-                _PacketsToProcess.RemoveRange(0, grabSize);
-            }
+
+            _Lock.EnterWriteLock();
+
+            Int32 grabSize = Math.Min(_PacketsToProcess.Count, 1000);
+            newList.AddRange(_PacketsToProcess.GetRange(0, grabSize));
+            _PacketsToProcess.RemoveRange(0, grabSize);
+
+            _Lock.EnterWriteLock();
+
             return newList;
         }
 
@@ -156,10 +165,7 @@ namespace Sbatman.Networking.Server
         ///     Returns true of the client is connected
         /// </summary>
         /// <returns> </returns>
-        public virtual Boolean IsConnected()
-        {
-            return _Connected;
-        }
+        public virtual Boolean Connected => _Connected;
 
         /// <summary>
         ///     Disconnects from the connected client
@@ -173,40 +179,44 @@ namespace Sbatman.Networking.Server
         ///     Returns a count of outstanding packets that need to be processed
         /// </summary>
         /// <returns> </returns>
-        public virtual Int32 GetOutStandingProcessingPacketsCount()
+        public virtual Int32 IncomingPacketsCount
         {
-            return _PacketsToProcess.Count;
+            get
+            {
+                _Lock.EnterReadLock();
+                Int32 val = _PacketsToProcess.Count;
+                _Lock.ExitReadLock();
+                return val;
+            }
         }
 
         /// <summary>
         ///     Returns a count of the packets that are pending to be sent
         /// </summary>
         /// <returns> </returns>
-        public virtual Int32 GetOutStandingSendPacketsCount()
+        public virtual Int32 OutgoingPacketsCount
         {
-            lock (_PacketsToSend)
+            get
             {
-                return _PacketsToSend.Count;
+                _Lock.EnterReadLock();
+                Int32 val = _PacketsToSend.Count;
+                _Lock.ExitReadLock();
+                return val;
             }
         }
 
+
         /// <summary>
-        ///     Returns a DateTime outlining when
+        ///     Returns a DateTime outlining when the connection was made
         /// </summary>
         /// <returns> </returns>
-        public virtual DateTime GetTimeOfConnection()
-        {
-            return _TimeOfConnection;
-        }
+        public virtual DateTime ConnectionStartTime => _TimeOfConnection;
 
         /// <summary>
         ///     Returns a timespan containing the duration of the connection
         /// </summary>
         /// <returns> </returns>
-        public virtual TimeSpan GetDurationOfConnection()
-        {
-            return DateTime.Now - _TimeOfConnection;
-        }
+        public virtual TimeSpan ConnectionAge => DateTime.Now - _TimeOfConnection;
 
         private void Update()
         {
@@ -216,74 +226,76 @@ namespace Sbatman.Networking.Server
                 {
                     _Connected = _AttachedSocket.Client.Connected;
                     if (!_Connected) break;
-                    lock (_PacketsToProcess)
+
+
+                    if (_AttachedSocket.Available > 0)
                     {
-                        if (_AttachedSocket.Available > 0)
+                        Byte[] dataPulled = new Byte[_AttachedSocket.Available];
+                        _AttachedSocket.GetStream().Read(dataPulled, 0, dataPulled.Length);
+                        Array.Copy(dataPulled, 0, _ByteBuffer, _ByteBufferCount, dataPulled.Length);
+                        _ByteBufferCount += dataPulled.Length;
+                    }
+
+                    Boolean finding = _ByteBufferCount > 11;
+                    while (finding)
+                    {
+                        Boolean packetStartPresent = true;
+                        for (Int32 x = 0; x < 4; x++)
                         {
-                            Byte[] dataPulled = new Byte[_AttachedSocket.Available];
-                            _AttachedSocket.GetStream().Read(dataPulled, 0, dataPulled.Length);
-                            Array.Copy(dataPulled, 0, _ByteBuffer, _ByteBufferCount, dataPulled.Length);
-                            _ByteBufferCount += dataPulled.Length;
+                            if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
+                            packetStartPresent = false;
+                            break;
                         }
 
-                        Boolean finding = _ByteBufferCount > 11;
-                        while (finding)
+                        if (packetStartPresent)
                         {
-                            Boolean packetStartPresent = true;
-                            for (Int32 x = 0; x < 4; x++)
+                            Int32 size = BitConverter.ToInt32(_ByteBuffer, 6);
+                            if (_ByteBufferCount >= size)
                             {
-                                if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
-                                packetStartPresent = false;
-                                break;
-                            }
-
-                            if (packetStartPresent)
-                            {
-                                Int32 size = BitConverter.ToInt32(_ByteBuffer, 6);
-                                if (_ByteBufferCount >= size)
-                                {
-                                    Byte[] packet = new Byte[size];
-                                    Array.Copy(_ByteBuffer, 0, packet, 0, size);
-                                    Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
-                                    _ByteBufferCount -= size;
-                                    _PacketsToProcess.Add(Packet.FromByteArray(packet));
-                                }
-                                else
-                                {
-                                    finding = false;
-                                }
+                                Byte[] packet = new Byte[size];
+                                Array.Copy(_ByteBuffer, 0, packet, 0, size);
+                                Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
+                                _ByteBufferCount -= size;
+                                _Lock.EnterWriteLock();
+                                _PacketsToProcess.Add(Packet.FromByteArray(packet));
+                                _Lock.ExitWriteLock();
                             }
                             else
                             {
-                                Int32 offset = -1;
-                                for (Int32 x = 0; x < _ByteBufferCount; x++)
-                                {
-                                    if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
-                                }
-
-                                if (offset != -1)
-                                {
-                                    Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCount - offset);
-                                    _ByteBufferCount -= offset;
-                                }
-                                else
-                                {
-                                    _ByteBufferCount = 0;
-                                }
+                                finding = false;
+                            }
+                        }
+                        else
+                        {
+                            Int32 offset = -1;
+                            for (Int32 x = 0; x < _ByteBufferCount; x++)
+                            {
+                                if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
                             }
 
-                            if (_ByteBufferCount < 12) finding = false;
+                            if (offset != -1)
+                            {
+                                Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCount - offset);
+                                _ByteBufferCount -= offset;
+                            }
+                            else
+                            {
+                                _ByteBufferCount = 0;
+                            }
                         }
+
+                        if (_ByteBufferCount < 12) finding = false;
                     }
 
-                    lock (_PacketsToSend)
+
+
+                    _Lock.EnterWriteLock();
+                    if (_PacketsToSend.Count > 0)
                     {
-                        if (_PacketsToSend.Count > 0)
-                        {
-                            _TempPacketList.AddRange(_PacketsToSend);
-                            _PacketsToSend.Clear();
-                        }
+                        _TempPacketList.AddRange(_PacketsToSend);
+                        _PacketsToSend.Clear();
                     }
+                    _Lock.ExitWriteLock();
 
                     if (_TempPacketList.Count > 0)
                     {
@@ -325,17 +337,13 @@ namespace Sbatman.Networking.Server
             _Connected = false;
             OnDisconnect();
             Dispose();
-
         }
 
         /// <summary>
         ///     Returns whether this Client Connection has been disposed
         /// </summary>
         /// <returns>True if disposed else false</returns>
-        public virtual Boolean IsDisposed()
-        {
-            return _Disposed;
-        }
+        public virtual Boolean Disposed => _Disposed;
 
         /// <summary>
         ///     Returns the client ID of this client connection
@@ -343,8 +351,7 @@ namespace Sbatman.Networking.Server
         /// <returns>The id of the client connection</returns>
         private static Int32 GetNewClientId()
         {
-            _LastClientIDAllocated++;
-            return _LastClientIDAllocated;
+            return _LastClientIDAllocated++;
         }
     }
 }
