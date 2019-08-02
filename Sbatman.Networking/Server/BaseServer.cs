@@ -111,7 +111,7 @@ namespace Sbatman.Networking.Server
             lock (_CurrentlyConnectedClients)
             {
                 newSocket.NoDelay = true;
-                _CurrentlyConnectedClients.Add((ClientConnection) Activator.CreateInstance(_ClientType, this, newSocket));
+                _CurrentlyConnectedClients.Add((ClientConnection)Activator.CreateInstance(_ClientType, this, newSocket));
                 if (_Running) return;
                 _Running = true;
                 _UpdateThread = new Thread(UpdateLoop);
@@ -126,16 +126,21 @@ namespace Sbatman.Networking.Server
         public void SendToAll(Packet p)
         {
             List<ClientConnection> d = new List<ClientConnection>();
-            lock (_CurrentlyConnectedClients) d.AddRange(_CurrentlyConnectedClients);
+
+            lock (_CurrentlyConnectedClients)
+            {
+                if (_CurrentlyConnectedClients == null) return;
+                d.AddRange(_CurrentlyConnectedClients);
+            }
 
             foreach (ClientConnection c in d)
             {
-	            if (c == null || p == null) continue;
-	            c.SendPacket(p.Copy());
+                if (c == null || p == null) continue;
+                c.SendPacket(p.Copy());
             }
 
-            d.Clear();
-            p.Dispose();
+            d?.Clear();
+            p?.Dispose();
         }
 
         public void Dispose()
@@ -160,7 +165,7 @@ namespace Sbatman.Networking.Server
                         break;
                     }
                     d.AddRange(_CurrentlyConnectedClients);
-                    foreach (ClientConnection c in d.Where(i => i==null ||i.Disposed)) _CurrentlyConnectedClients.Remove(c);
+                    foreach (ClientConnection c in d.Where(i => i == null || i.Disposed)) _CurrentlyConnectedClients.Remove(c);
                     d.Clear();
                 }
                 Thread.Sleep(2);
