@@ -155,7 +155,7 @@ namespace Sbatman.Networking.Server
                         break;
                     }
                     d.AddRange(_CurrentlyConnectedClients);
-                    foreach (ClientConnection c in d.Where(i => i.IsDisposed())) _CurrentlyConnectedClients.Remove(c);
+                    foreach (ClientConnection c in d.Where(i => i.Disposed)) _CurrentlyConnectedClients.Remove(c);
                     d.Clear();
                 }
                 Thread.Sleep(16);

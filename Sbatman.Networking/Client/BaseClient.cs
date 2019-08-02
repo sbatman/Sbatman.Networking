@@ -126,11 +126,6 @@ namespace Sbatman.Networking.Client
                 if (_ClientSocket.Connected)
                 {
                     _Connected = true;
-                    if (_PacketHandel != null)
-                    {
-                        _PacketHandel.Abort();
-                        _PacketHandel = null;
-                    }
                     _PacketHandel = new Thread(Update);
                     _PacketHandel.Start();
                     return true;
