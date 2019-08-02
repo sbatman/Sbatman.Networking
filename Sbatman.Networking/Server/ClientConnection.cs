@@ -156,7 +156,7 @@ namespace Sbatman.Networking.Server
             newList.AddRange(_PacketsToProcess.GetRange(0, grabSize));
             _PacketsToProcess.RemoveRange(0, grabSize);
 
-            _Lock.EnterWriteLock();
+            _Lock.ExitWriteLock();
 
             return newList;
         }
