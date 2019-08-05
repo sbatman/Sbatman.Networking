@@ -283,8 +283,6 @@ namespace Sbatman.Networking.Server
                         if (_ByteBufferCount < 12) finding = false;
                     }
 
-
-
                     _Lock.EnterWriteLock();
                     if (_PacketsToSend.Count > 0)
                     {
