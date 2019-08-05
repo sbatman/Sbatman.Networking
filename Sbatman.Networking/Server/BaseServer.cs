@@ -125,11 +125,11 @@ namespace Sbatman.Networking.Server
         /// <param name="p">The packet to send, With dispose once sent</param>
         public void SendToAll(Packet p)
         {
+	        if (_CurrentlyConnectedClients == null) return;
             List<ClientConnection> d = new List<ClientConnection>();
 
             lock (_CurrentlyConnectedClients)
             {
-                if (_CurrentlyConnectedClients == null) return;
                 d.AddRange(_CurrentlyConnectedClients);
             }
 
