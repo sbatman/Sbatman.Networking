@@ -159,31 +159,41 @@ namespace Sbatman.Networking.Server
                 List<ClientConnection> d = new List<ClientConnection>();
                 lock (_CurrentlyConnectedClients)
                 {
-                    if (_CurrentlyConnectedClients.Count == 0)
-                    {
-                        _Running = false;
-                        break;
-                    }
                     d.AddRange(_CurrentlyConnectedClients);
                     foreach (ClientConnection c in d.Where(i => i == null || i.Disposed)) _CurrentlyConnectedClients.Remove(c);
                     d.Clear();
                 }
                 Thread.Sleep(2);
             }
+
+            Stop();
+        }
+
+		/// <summary>
+        /// Stop ths server disconnecting all clients
+        /// </summary>
+        public void Stop()
+        {
+	        _Running = false;
+	        _Listening = false;
             //Time to dispose
-            lock (_CurrentlyConnectedClients)
+            if (_CurrentlyConnectedClients != null)
             {
-                foreach (ClientConnection client in _CurrentlyConnectedClients)
-                {
-                    client.Disconnect();
-                    client.Dispose();
-                }
+	            lock (_CurrentlyConnectedClients)
+	            {
+		            foreach (ClientConnection client in _CurrentlyConnectedClients)
+		            {
+			            client.Disconnect();
+			            client.Dispose();
+		            }
+	            }
+	            _CurrentlyConnectedClients.Clear();
             }
-            _CurrentlyConnectedClients.Clear();
+
             _CurrentlyConnectedClients = null;
-            _ListeningThread = null;
-            _TcpListener.Stop();
-            _TcpListener = null;
+	        _ListeningThread = null;
+	        _TcpListener.Stop();
+	        _TcpListener = null;
         }
 
         /// <summary>
