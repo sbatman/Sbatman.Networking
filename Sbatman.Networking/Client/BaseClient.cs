@@ -74,6 +74,8 @@ namespace Sbatman.Networking.Client
 
         protected Action<String> _LogFunction;
 
+        protected ReaderWriterLockSlim _Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+
         /// <summary>
         /// Creates an instance of BaseClient, Call connect to establish a connection.
         /// </summary>
@@ -116,8 +118,7 @@ namespace Sbatman.Networking.Client
             {
                 if (_ClientSocket == null)
                 {
-                    _ClientSocket = new TcpClient(ipEndPoint);
-                    _ClientSocket.NoDelay = true;
+                    _ClientSocket = new TcpClient(ipEndPoint) { NoDelay = true };
                 }
                 else
                 {
@@ -178,15 +179,18 @@ namespace Sbatman.Networking.Client
         public Packet[] GetPacketsToProcess()
         {
             Packet[] packets;
-            lock (_PacketsToProcess)
+
+            _Lock.EnterWriteLock();
+
+            Int32 count = _PacketsToProcess.Count;
+            packets = new Packet[count];
+            for (Int32 x = 0; x < count; x++)
             {
-                Int32 count = _PacketsToProcess.Count;
-                packets = new Packet[count];
-                for (Int32 x = 0; x < count; x++)
-                {
-                    packets[x] = _PacketsToProcess.Dequeue();
-                }
+                packets[x] = _PacketsToProcess.Dequeue();
             }
+
+            _Lock.ExitWriteLock();
+
             return packets;
         }
 
@@ -197,10 +201,9 @@ namespace Sbatman.Networking.Client
         /// <param name="p">The packet to inject</param>
         public void InjectToPacketsToProcess(Packet p)
         {
-            lock (_PacketsToProcess)
-            {
-                _PacketsToProcess.Enqueue(p);
-            }
+            _Lock.EnterWriteLock();
+            _PacketsToProcess.Enqueue(p);
+            _Lock.ExitWriteLock();
         }
 
         /// <summary>
@@ -209,10 +212,10 @@ namespace Sbatman.Networking.Client
         /// <returns> </returns>
         public Int32 GetPacketsToProcessCount()
         {
-            lock (_PacketsToProcess)
-            {
-                return _PacketsToProcess.Count;
-            }
+            _Lock.EnterReadLock();
+            Int32 returnVal = _PacketsToProcess.Count;
+            _Lock.ExitReadLock();
+            return returnVal;
         }
 
         /// <summary>
@@ -221,10 +224,10 @@ namespace Sbatman.Networking.Client
         /// <returns> </returns>
         public Int32 GetPacketsToSendCount()
         {
-            lock (_PacketsToSend)
-            {
-                return _PacketsToSend.Count;
-            }
+            _Lock.EnterReadLock();
+            Int32 returnVal = _PacketsToSend.Count;
+            _Lock.ExitReadLock();
+            return returnVal;
         }
 
         /// <summary>
@@ -233,10 +236,9 @@ namespace Sbatman.Networking.Client
         /// <param name="packet"> Packet to send </param>
         public virtual void SendPacket(Packet packet)
         {
-            lock (_PacketsToSend)
-            {
-                _PacketsToSend.Add(packet);
-            }
+            _Lock.EnterWriteLock();
+            _PacketsToSend.Add(packet);
+            _Lock.ExitWriteLock();
         }
 
         /// <summary>
@@ -245,10 +247,9 @@ namespace Sbatman.Networking.Client
         /// <param name="packets"> List of packets to send</param>
         public virtual void SendPacket(IEnumerable<Packet> packets)
         {
-            lock (_PacketsToSend)
-            {
-                _PacketsToSend.AddRange(packets);
-            }
+            _Lock.EnterWriteLock();
+            _PacketsToSend.AddRange(packets);
+            _Lock.ExitWriteLock();
         }
 
         /// <summary>
@@ -256,6 +257,11 @@ namespace Sbatman.Networking.Client
         /// </summary>
         /// <returns> </returns>
         public virtual Boolean Connected => _ClientSocket != null && _ClientSocket.Connected;
+
+        private void Lock()
+        {
+
+        }
 
         /// <summary>
         ///     Disconnect from the server
@@ -272,37 +278,42 @@ namespace Sbatman.Networking.Client
                 while (_Connected)
                 {
                     List<Packet> tempList = new List<Packet>();
-                    lock (_PacketsToSend)
-                    {
-                        tempList.AddRange(_PacketsToSend);
-                        _PacketsToSend.Clear();
-                    }
+
+                    _Lock.EnterWriteLock();
+
+                    tempList.AddRange(_PacketsToSend);
+                    _PacketsToSend.Clear();
+
+                    _Lock.ExitWriteLock();
 
                     if (tempList.Count > 0)
                     {
-                        lock (_ClientSocket)
+                        _Lock.EnterWriteLock();
+
+                        NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
+                        foreach (Packet packet in tempList)
                         {
-                            NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
-                            foreach (Packet packet in tempList)
-                            {
-                                Byte[] data = packet.ToByteArray();
-                                netStream.Write(data, 0, data.Length);
-                                packet.Dispose();
-                            }
-                            netStream.Close();
+                            Byte[] data = packet.ToByteArray();
+                            netStream.Write(data, 0, data.Length);
                         }
+                        netStream.Close();
+
+                        _Lock.ExitWriteLock();
                     }
                     tempList.Clear();
-                    lock (_ClientSocket)
+
+                    _Lock.EnterWriteLock();
+
+                    if (_ClientSocket.Available > 0)
                     {
-                        if (_ClientSocket.Available > 0)
-                        {
-                            Byte[] dataPulled = new Byte[_ClientSocket.Available];
-                            _ClientSocket.GetStream().Read(dataPulled, 0, dataPulled.Length);
-                            Array.Copy(dataPulled, 0, _ByteBuffer, _ByteBufferCount, dataPulled.Length);
-                            _ByteBufferCount += dataPulled.Length;
-                        }
+                        Byte[] dataPulled = new Byte[_ClientSocket.Available];
+                        _ClientSocket.GetStream().Read(dataPulled, 0, dataPulled.Length);
+                        Array.Copy(dataPulled, 0, _ByteBuffer, _ByteBufferCount, dataPulled.Length);
+                        _ByteBufferCount += dataPulled.Length;
                     }
+
+                    _Lock.ExitWriteLock();
+
                     Boolean finding = _ByteBufferCount > 11;
                     while (finding)
                     {
@@ -323,10 +334,12 @@ namespace Sbatman.Networking.Client
                                 Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
                                 _ByteBufferCount -= size;
                                 Packet p = Packet.FromByteArray(packet);
-                                if (p != null) lock (_PacketsToProcess)
-                                    {
-                                        _PacketsToProcess.Enqueue(p);
-                                    }
+                                if (p != null)
+                                {
+                                    _Lock.EnterWriteLock();
+                                    _PacketsToProcess.Enqueue(p);
+                                    _Lock.ExitWriteLock();
+                                }
                             }
                             else
                             {
@@ -352,10 +365,11 @@ namespace Sbatman.Networking.Client
                         }
                         if (_ByteBufferCount < 12) finding = false;
                     }
-                    lock (_PacketsToProcess)
-                    {
-                        foreach (Packet p in tempList) _PacketsToProcess.Enqueue(p);
-                    }
+
+                    _Lock.EnterWriteLock();
+                    foreach (Packet p in tempList) _PacketsToProcess.Enqueue(p);
+                    _Lock.ExitWriteLock();
+
                     tempList.Clear();
                     Thread.Sleep(_PacketCheckInterval);
                 }

@@ -54,6 +54,8 @@ namespace Sbatman.Networking.Server
         /// </summary>
         protected Thread _UpdateThread;
 
+        protected ReaderWriterLockSlim _Lock_Clients = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+
         /// <summary>
         ///     Required to initialise the Server system
         /// </summary>
@@ -108,15 +110,21 @@ namespace Sbatman.Networking.Server
         private void HandelNewConnection(TcpClient newSocket)
         {
             newSocket.NoDelay = true;
-            lock (_CurrentlyConnectedClients)
+
+            _Lock_Clients.EnterWriteLock();
+
+            newSocket.NoDelay = true;
+            _CurrentlyConnectedClients.Add((ClientConnection)Activator.CreateInstance(_ClientType, this, newSocket));
+            if (_Running)
             {
-                newSocket.NoDelay = true;
-                _CurrentlyConnectedClients.Add((ClientConnection)Activator.CreateInstance(_ClientType, this, newSocket));
-                if (_Running) return;
-                _Running = true;
-                _UpdateThread = new Thread(UpdateLoop);
-                _UpdateThread.Start();
+                _Lock_Clients.ExitWriteLock();
+                return;
             }
+
+            _Running = true;
+            _UpdateThread = new Thread(UpdateLoop);
+            _UpdateThread.Start();
+            _Lock_Clients.ExitWriteLock();
         }
 
         /// <summary>
@@ -125,22 +133,20 @@ namespace Sbatman.Networking.Server
         /// <param name="p">The packet to send, With dispose once sent</param>
         public void SendToAll(Packet p)
         {
-	        if (_CurrentlyConnectedClients == null) return;
+            if (_CurrentlyConnectedClients == null) return;
             List<ClientConnection> d = new List<ClientConnection>();
 
-            lock (_CurrentlyConnectedClients)
-            {
-                d.AddRange(_CurrentlyConnectedClients);
-            }
+            _Lock_Clients.EnterWriteLock();
+            d.AddRange(_CurrentlyConnectedClients);
+            _Lock_Clients.ExitWriteLock();
 
             foreach (ClientConnection c in d)
             {
                 if (c == null || p == null) continue;
-                c.SendPacket(p.Copy());
+                c.SendPacket(p);
             }
 
             d?.Clear();
-            p?.Dispose();
         }
 
         public void Dispose()
@@ -157,43 +163,45 @@ namespace Sbatman.Networking.Server
             while (_Running)
             {
                 List<ClientConnection> d = new List<ClientConnection>();
-                lock (_CurrentlyConnectedClients)
-                {
-                    d.AddRange(_CurrentlyConnectedClients);
-                    foreach (ClientConnection c in d.Where(i => i == null || i.Disposed)) _CurrentlyConnectedClients.Remove(c);
-                    d.Clear();
-                }
+                _Lock_Clients.EnterWriteLock();
+
+                d.AddRange(_CurrentlyConnectedClients);
+                foreach (ClientConnection c in d.Where(i => i == null || i.Disposed)) _CurrentlyConnectedClients.Remove(c);
+                d.Clear();
+
+                _Lock_Clients.ExitWriteLock();
                 Thread.Sleep(2);
             }
 
             Stop();
         }
 
-		/// <summary>
+        /// <summary>
         /// Stop ths server disconnecting all clients
         /// </summary>
         public void Stop()
         {
-	        _Running = false;
-	        _Listening = false;
+            _Running = false;
+            _Listening = false;
             //Time to dispose
             if (_CurrentlyConnectedClients != null)
             {
-	            lock (_CurrentlyConnectedClients)
-	            {
-		            foreach (ClientConnection client in _CurrentlyConnectedClients)
-		            {
-			            client.Disconnect();
-			            client.Dispose();
-		            }
-	            }
-	            _CurrentlyConnectedClients.Clear();
+
+                _Lock_Clients.EnterWriteLock();
+                foreach (ClientConnection client in _CurrentlyConnectedClients)
+                {
+                    client.Disconnect();
+                    client.Dispose();
+                }
+                _Lock_Clients.ExitWriteLock();
+
+                _CurrentlyConnectedClients.Clear();
             }
 
             _CurrentlyConnectedClients = null;
-	        _ListeningThread = null;
-	        _TcpListener.Stop();
-	        _TcpListener = null;
+            _ListeningThread = null;
+            _TcpListener.Stop();
+            _TcpListener = null;
         }
 
         /// <summary>
