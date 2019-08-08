@@ -53,16 +53,6 @@ namespace Sbatman.Networking.Client
         protected Boolean _Connected;
 
         /// <summary>
-        ///     Set true in the event of an error
-        /// </summary>
-        protected Boolean _Error;
-
-        /// <summary>
-        ///     Last internal error message
-        /// </summary>
-        protected String _ErrorMessage;
-
-        /// <summary>
         ///     The interval in MS packets are checked for
         /// </summary>
         protected Int32 _PacketCheckInterval = 2;
@@ -104,8 +94,6 @@ namespace Sbatman.Networking.Client
         public Boolean Connect(IPEndPoint ipEndPoint, Int32 bufferSizeInKb = 1024)
         {
             _BufferSize = bufferSizeInKb * 1024;
-            _ErrorMessage = "";
-            _Error = false;
             if (_ByteBuffer == null)
             {
                 _ByteBuffer = new Byte[_BufferSize];
@@ -178,12 +166,10 @@ namespace Sbatman.Networking.Client
         /// <returns> </returns>
         public Packet[] GetPacketsToProcess()
         {
-            Packet[] packets;
-
             _Lock.EnterWriteLock();
 
             Int32 count = _PacketsToProcess.Count;
-            packets = new Packet[count];
+            Packet[] packets = new Packet[count];
             for (Int32 x = 0; x < count; x++)
             {
                 packets[x] = _PacketsToProcess.Dequeue();
@@ -258,11 +244,6 @@ namespace Sbatman.Networking.Client
         /// <returns> </returns>
         public virtual Boolean Connected => _ClientSocket != null && _ClientSocket.Connected;
 
-        private void Lock()
-        {
-
-        }
-
         /// <summary>
         ///     Disconnect from the server
         /// </summary>
@@ -273,111 +254,104 @@ namespace Sbatman.Networking.Client
 
         private void Update()
         {
-            try
+
+            while (_Connected)
             {
-                while (_Connected)
+                List<Packet> tempList = new List<Packet>();
+
+                _Lock.EnterWriteLock();
+
+                tempList.AddRange(_PacketsToSend);
+                _PacketsToSend.Clear();
+
+                _Lock.ExitWriteLock();
+
+                if (tempList.Count > 0)
                 {
-                    List<Packet> tempList = new List<Packet>();
-
                     _Lock.EnterWriteLock();
 
-                    tempList.AddRange(_PacketsToSend);
-                    _PacketsToSend.Clear();
+                    NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
+                    foreach (Packet packet in tempList)
+                    {
+                        Byte[] data = packet.ToByteArray();
+                        netStream.Write(data, 0, data.Length);
+                    }
+                    netStream.Close();
 
                     _Lock.ExitWriteLock();
+                }
+                tempList.Clear();
 
-                    if (tempList.Count > 0)
+                _Lock.EnterWriteLock();
+
+                if (_ClientSocket.Available > 0)
+                {
+                    Byte[] dataPulled = new Byte[_ClientSocket.Available];
+                    _ClientSocket.GetStream().Read(dataPulled, 0, dataPulled.Length);
+                    Array.Copy(dataPulled, 0, _ByteBuffer, _ByteBufferCount, dataPulled.Length);
+                    _ByteBufferCount += dataPulled.Length;
+                }
+
+                _Lock.ExitWriteLock();
+
+                Boolean finding = _ByteBufferCount > 11;
+                while (finding)
+                {
+                    Boolean packetStartPresent = true;
+                    for (Int32 x = 0; x < 4; x++)
                     {
-                        _Lock.EnterWriteLock();
-
-                        NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
-                        foreach (Packet packet in tempList)
-                        {
-                            Byte[] data = packet.ToByteArray();
-                            netStream.Write(data, 0, data.Length);
-                        }
-                        netStream.Close();
-
-                        _Lock.ExitWriteLock();
+                        if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
+                        packetStartPresent = false;
+                        break;
                     }
-                    tempList.Clear();
-
-                    _Lock.EnterWriteLock();
-
-                    if (_ClientSocket.Available > 0)
+                    if (packetStartPresent)
                     {
-                        Byte[] dataPulled = new Byte[_ClientSocket.Available];
-                        _ClientSocket.GetStream().Read(dataPulled, 0, dataPulled.Length);
-                        Array.Copy(dataPulled, 0, _ByteBuffer, _ByteBufferCount, dataPulled.Length);
-                        _ByteBufferCount += dataPulled.Length;
-                    }
-
-                    _Lock.ExitWriteLock();
-
-                    Boolean finding = _ByteBufferCount > 11;
-                    while (finding)
-                    {
-                        Boolean packetStartPresent = true;
-                        for (Int32 x = 0; x < 4; x++)
+                        Int32 size = BitConverter.ToInt32(_ByteBuffer, 6);
+                        if (_ByteBufferCount >= size)
                         {
-                            if (_ByteBuffer[x] == Packet.PacketStart[x]) continue;
-                            packetStartPresent = false;
-                            break;
-                        }
-                        if (packetStartPresent)
-                        {
-                            Int32 size = BitConverter.ToInt32(_ByteBuffer, 6);
-                            if (_ByteBufferCount >= size)
+                            Byte[] packet = new Byte[size];
+                            Array.Copy(_ByteBuffer, 0, packet, 0, size);
+                            Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
+                            _ByteBufferCount -= size;
+                            Packet p = Packet.FromByteArray(packet);
+                            if (p != null)
                             {
-                                Byte[] packet = new Byte[size];
-                                Array.Copy(_ByteBuffer, 0, packet, 0, size);
-                                Array.Copy(_ByteBuffer, size, _ByteBuffer, 0, _ByteBufferCount - size);
-                                _ByteBufferCount -= size;
-                                Packet p = Packet.FromByteArray(packet);
-                                if (p != null)
-                                {
-                                    _Lock.EnterWriteLock();
-                                    _PacketsToProcess.Enqueue(p);
-                                    _Lock.ExitWriteLock();
-                                }
-                            }
-                            else
-                            {
-                                finding = false;
+                                _Lock.EnterWriteLock();
+                                _PacketsToProcess.Enqueue(p);
+                                _Lock.ExitWriteLock();
                             }
                         }
                         else
                         {
-                            Int32 offset = -1;
-                            for (Int32 x = 0; x < _ByteBufferCount; x++)
-                            {
-                                if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
-                            }
-                            if (offset != -1)
-                            {
-                                Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCount - offset);
-                                _ByteBufferCount -= offset;
-                            }
-                            else
-                            {
-                                _ByteBufferCount = 0;
-                            }
+                            finding = false;
                         }
-                        if (_ByteBufferCount < 12) finding = false;
                     }
-
-                    _Lock.EnterWriteLock();
-                    foreach (Packet p in tempList) _PacketsToProcess.Enqueue(p);
-                    _Lock.ExitWriteLock();
-
-                    tempList.Clear();
-                    Thread.Sleep(_PacketCheckInterval);
+                    else
+                    {
+                        Int32 offset = -1;
+                        for (Int32 x = 0; x < _ByteBufferCount; x++)
+                        {
+                            if (_ByteBuffer[x] == Packet.PacketStart[x]) offset = x;
+                        }
+                        if (offset != -1)
+                        {
+                            Array.Copy(_ByteBuffer, offset, _ByteBuffer, 0, _ByteBufferCount - offset);
+                            _ByteBufferCount -= offset;
+                        }
+                        else
+                        {
+                            _ByteBufferCount = 0;
+                        }
+                    }
+                    if (_ByteBufferCount < 12) finding = false;
                 }
-            }
-            catch (Exception e)
-            {
-                _Error = true;
-                _ErrorMessage = e.Message;
+
+                _Lock.EnterWriteLock();
+                foreach (Packet p in tempList) _PacketsToProcess.Enqueue(p);
+                _Lock.ExitWriteLock();
+
+                tempList.Clear();
+                Thread.Sleep(_PacketCheckInterval);
             }
 
             if (_ClientSocket != null)
@@ -386,25 +360,6 @@ namespace Sbatman.Networking.Client
                 _ClientSocket = null;
             }
             _Connected = false;
-        }
-
-        /// <summary>
-        ///     Returns true if an internal error has occured. This can be retrieved with GetError.
-        /// </summary>
-        /// <returns></returns>
-        public Boolean HasErrored()
-        {
-            return _Error;
-        }
-
-        /// <summary>
-        ///     Returns the message string of the last error and resets the has error to false
-        /// </summary>
-        /// <returns></returns>
-        public String GetError()
-        {
-            _Error = false;
-            return _ErrorMessage;
         }
 
         /// <summary>

@@ -132,8 +132,6 @@ namespace Sbatman.Networking.Server
             _Lock.EnterWriteLock();
             _PacketsToSend.AddRange(packets);
             _Lock.ExitWriteLock();
-
-            packets.Clear();
         }
 
         /// <summary>
