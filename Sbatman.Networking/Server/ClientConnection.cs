@@ -302,7 +302,6 @@ namespace Sbatman.Networking.Server
                         _NetStream.Close();
                         _NetStream.Dispose();
                         _NetStream = null;
-                        foreach (Packet p in _TempPacketList) p.Dispose();
                     }
 
                     _TempPacketList.Clear();
