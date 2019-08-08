@@ -146,7 +146,7 @@ namespace Sbatman.Networking.Server
 
             _Lock.EnterWriteLock();
 
-            Int32 grabSize = Math.Min(_PacketsToProcess.Count, 1000);
+            Int32 grabSize = Math.Min(_PacketsToProcess.Count, maximum);
             newList.AddRange(_PacketsToProcess.GetRange(0, grabSize));
             _PacketsToProcess.RemoveRange(0, grabSize);
 
