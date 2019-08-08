@@ -5,11 +5,11 @@
     <Authors>Sbatman</Authors>
     <Description>Sbatman.Networking is a lightweight and easy to use networking abstraction library. Offering easy packet building and handeling. It also offers easy client server connectivity management. This is a .net standard 2.0 project</Description>
     <PackageTags>Networking Serialization Compression</PackageTags>
-    <Version>1.5.0</Version>
+    <Version>1.5.1</Version>
     <PackageReleaseNotes>Last client disconnect no longer stops the server
 Added a new method for stopping the server</PackageReleaseNotes>
     <AssemblyVersion>1.5.0.0</AssemblyVersion>
-    <FileVersion>1.5.0.0</FileVersion>
+    <FileVersion>1.5.1.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
