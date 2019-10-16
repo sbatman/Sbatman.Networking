@@ -70,24 +70,14 @@ namespace Sbatman.Networking.Server
             if (_Disposed) return;
             _Disposed = true;
             _Connected = false;
-            if (_AttachedSocket != null && _AttachedSocket.Connected) _AttachedSocket.Close();
+            _AttachedSocket?.Dispose();
 
             _ByteBuffer = null;
 
-            if (_CurrentDataStream != null)
-            {
-                _CurrentDataStream.Close();
-                _CurrentDataStream.Dispose();
-                _CurrentDataStream = null;
-            }
-            if (_NetStream != null)
-            {
-                _NetStream.Close();
-                _NetStream.Dispose();
-                _NetStream = null;
-            }
-            _PacketsToProcess.Clear();
-            _PacketsToSend.Clear();
+            _CurrentDataStream?.Dispose();
+            _NetStream?.Dispose();
+            _PacketsToProcess?.Clear();
+            _PacketsToSend?.Clear();
             _UpdateThread = null;
         }
 

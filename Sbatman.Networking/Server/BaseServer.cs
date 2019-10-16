@@ -186,16 +186,23 @@ namespace Sbatman.Networking.Server
             //Time to dispose
             if (_CurrentlyConnectedClients != null)
             {
-
-                _Lock_Clients.EnterWriteLock();
+                _Lock_Clients?.EnterWriteLock();
                 foreach (ClientConnection client in _CurrentlyConnectedClients)
                 {
-                    client.Disconnect();
-                    client.Dispose();
+                    try
+                    {
+                        client?.Disconnect();
+                        client?.Dispose();
+                    }
+                    catch (Exception e)
+                    {
+                        //we are disposing so swallow the exception for now
+                        Console.WriteLine(e);
+                    }
                 }
-                _Lock_Clients.ExitWriteLock();
+                _Lock_Clients?.ExitWriteLock();
 
-                _CurrentlyConnectedClients.Clear();
+                _CurrentlyConnectedClients?.Clear();
             }
 
             _CurrentlyConnectedClients = null;

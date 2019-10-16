@@ -1,14 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Sbatman</Authors>
     <Description>Sbatman.Networking is a lightweight and easy to use networking abstraction library. Offering easy packet building and handeling. It also offers easy client server connectivity management. This is a .net standard 2.0 project</Description>
     <PackageTags>Networking Serialization Compression</PackageTags>
-    <Version>1.5.3</Version>
+    <Version>1.5.4</Version>
     <PackageReleaseNotes>Minor fixes</PackageReleaseNotes>
-    <AssemblyVersion>1.5.3.0</AssemblyVersion>
-    <FileVersion>1.5.3.0</FileVersion>
+    <AssemblyVersion>1.5.4.0</AssemblyVersion>
+    <FileVersion>1.5.4.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
