@@ -156,7 +156,7 @@ namespace Sbatman.Networking.Server
         /// </summary>
         public virtual void Disconnect()
         {
-            _Connected = false;
+            _Disposed = true;
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace Sbatman.Networking.Server
 
         private void Update()
         {
-            while (_Connected)
+            while (!_Disposed&&_Connected)
             {
                 try
                 {
@@ -314,6 +314,7 @@ namespace Sbatman.Networking.Server
                     _AttachedSocket.Close();
                     _AttachedSocket.Client.Dispose();
                 }
+                _AttachedSocket.Dispose();
             }
             _Connected = false;
             OnDisconnect();

@@ -160,6 +160,7 @@ namespace Sbatman.Networking.Server
         /// </summary>
         private void UpdateLoop()
         {
+
             while (_Running)
             {
                 List<ClientConnection> d = new List<ClientConnection>();
@@ -207,7 +208,16 @@ namespace Sbatman.Networking.Server
 
             _CurrentlyConnectedClients = null;
             _ListeningThread = null;
-            _TcpListener.Stop();
+            try
+            {
+                _TcpListener?.Stop();
+            }
+            catch (Exception e)
+            {
+                //we are disposing so swallow the exception for now
+                Console.WriteLine(e);
+            }
+
             _TcpListener = null;
         }
 
