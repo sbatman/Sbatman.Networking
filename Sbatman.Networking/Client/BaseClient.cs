@@ -23,11 +23,6 @@ namespace Sbatman.Networking.Client
         protected readonly Queue<Packet> _PacketsToProcess = new Queue<Packet>();
 
         /// <summary>
-        ///     List of packets that have yet to be sent
-        /// </summary>
-        protected readonly List<Packet> _PacketsToSend = new List<Packet>();
-
-        /// <summary>
         ///     The buffer size allocated to this client
         /// </summary>
         protected Int32 _BufferSize;
@@ -205,25 +200,28 @@ namespace Sbatman.Networking.Client
         }
 
         /// <summary>
-        ///     Returns an int containing the number of packets that have not yet been sent
-        /// </summary>
-        /// <returns> </returns>
-        public Int32 GetPacketsToSendCount()
-        {
-            _Lock.EnterReadLock();
-            Int32 returnVal = _PacketsToSend.Count;
-            _Lock.ExitReadLock();
-            return returnVal;
-        }
-
-        /// <summary>
         ///     Sends a packet to the connected server, and disposes the packet once sent.
         /// </summary>
         /// <param name="packet"> Packet to send </param>
         public virtual void SendPacket(Packet packet)
         {
             _Lock.EnterWriteLock();
-            _PacketsToSend.Add(packet);
+
+            try
+            {
+                NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
+
+                Byte[] data = packet.ToByteArray();
+                netStream.Write(data, 0, data.Length);
+
+                netStream.Close();
+            }
+            catch (Exception e)
+            {
+                _Connected = false;
+                return;
+            }
+
             _Lock.ExitWriteLock();
         }
 
@@ -234,7 +232,25 @@ namespace Sbatman.Networking.Client
         public virtual void SendPacket(IEnumerable<Packet> packets)
         {
             _Lock.EnterWriteLock();
-            _PacketsToSend.AddRange(packets);
+
+            try
+            {
+                NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
+
+                foreach (Packet packet in packets)
+                {
+                    Byte[] data = packet.ToByteArray();
+                    netStream.Write(data, 0, data.Length);
+                }
+
+                netStream.Close();
+            }
+            catch (Exception e)
+            {
+                _Connected = false;
+                return;
+            }
+
             _Lock.ExitWriteLock();
         }
 
@@ -257,41 +273,6 @@ namespace Sbatman.Networking.Client
 
             while (_Connected)
             {
-                List<Packet> tempList = new List<Packet>();
-
-                _Lock.EnterWriteLock();
-
-                tempList.AddRange(_PacketsToSend);
-                _PacketsToSend.Clear();
-
-                _Lock.ExitWriteLock();
-
-                if (tempList.Count > 0)
-                {
-                    _Lock.EnterWriteLock();
-
-                    try
-                    {
-                        NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
-
-                        foreach (Packet packet in tempList)
-                        {
-                            Byte[] data = packet.ToByteArray();
-                            netStream.Write(data, 0, data.Length);
-                        }
-
-                        netStream.Close();
-                    }
-                    catch (System.IO.IOException e)
-                    {
-                        _Connected = false;
-                        return;
-                    }
-
-                    _Lock.ExitWriteLock();
-                }
-                tempList.Clear();
-
                 _Lock.EnterWriteLock();
 
                 if (_ClientSocket.Available > 0)
@@ -356,11 +337,6 @@ namespace Sbatman.Networking.Client
                     if (_ByteBufferCount < 12) finding = false;
                 }
 
-                _Lock.EnterWriteLock();
-                foreach (Packet p in tempList) _PacketsToProcess.Enqueue(p);
-                _Lock.ExitWriteLock();
-
-                tempList.Clear();
                 Thread.Sleep(_PacketCheckInterval);
             }
 
