@@ -60,7 +60,7 @@ namespace Sbatman.Networking.Client
         /// <summary>
         ///     The thread used for handling packets
         /// </summary>
-        protected Thread _PacketHandel;
+        protected Thread _PacketHandle;
 
         protected Action<String> _LogFunction;
 
@@ -115,8 +115,8 @@ namespace Sbatman.Networking.Client
                 if (_ClientSocket.Connected)
                 {
                     _Connected = true;
-                    _PacketHandel = new Thread(Update);
-                    _PacketHandel.Start();
+                    _PacketHandle = new Thread(Update);
+                    _PacketHandle.Start();
                     return true;
                 }
             }
@@ -270,13 +270,23 @@ namespace Sbatman.Networking.Client
                 {
                     _Lock.EnterWriteLock();
 
-                    NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
-                    foreach (Packet packet in tempList)
+                    try
                     {
-                        Byte[] data = packet.ToByteArray();
-                        netStream.Write(data, 0, data.Length);
+                        NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
+
+                        foreach (Packet packet in tempList)
+                        {
+                            Byte[] data = packet.ToByteArray();
+                            netStream.Write(data, 0, data.Length);
+                        }
+
+                        netStream.Close();
                     }
-                    netStream.Close();
+                    catch (System.IO.IOException e)
+                    {
+                        _Connected = false;
+                        return;
+                    }
 
                     _Lock.ExitWriteLock();
                 }
