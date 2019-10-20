@@ -337,11 +337,6 @@ namespace Sbatman.Networking.Client
                     if (_ByteBufferCount < 12) finding = false;
                 }
 
-                _Lock.EnterWriteLock();
-                foreach (Packet p in tempList) _PacketsToProcess.Enqueue(p);
-                _Lock.ExitWriteLock();
-
-                tempList.Clear();
                 Thread.Sleep(_PacketCheckInterval);
             }
 
