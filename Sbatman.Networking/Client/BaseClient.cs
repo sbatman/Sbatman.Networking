@@ -209,12 +209,8 @@ namespace Sbatman.Networking.Client
 
             try
             {
-                NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
-
                 Byte[] data = packet.ToByteArray();
-                netStream.Write(data, 0, data.Length);
-
-                netStream.Close();
+                _ClientSocket.Client.Send(data);
             }
             catch (Exception e)
             {
@@ -235,15 +231,11 @@ namespace Sbatman.Networking.Client
 
             try
             {
-                NetworkStream netStream = new NetworkStream(_ClientSocket.Client);
-
                 foreach (Packet packet in packets)
                 {
                     Byte[] data = packet.ToByteArray();
-                    netStream.Write(data, 0, data.Length);
+                    _ClientSocket.Client.Send(data);
                 }
-
-                netStream.Close();
             }
             catch (Exception e)
             {
